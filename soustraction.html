@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Les Soustractions avec Maître Hibou</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #E0F2FE; /* sky-100 */
+            background-image: radial-gradient(#bae6fd 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+
+        /* Animations */
+        @keyframes bounce-win {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        .animate-win { animation: bounce-win 0.5s ease infinite; }
+
+        @keyframes shake-error {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .animate-error { animation: shake-error 0.4s ease; }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-in { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* Champs de saisie */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .input-res {
+            width: 60px;
+            height: 70px;
+            font-size: 2.5rem;
+            text-align: center;
+            border: 4px solid #CBD5E1;
+            border-radius: 12px;
+            background-color: white;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .input-res:focus {
+            outline: none;
+            border-color: #FBBF24;
+            transform: scale(1.05);
+        }
+
+        /* Retenues (Cassage) */
+        .retenue-top {
+            width: 45px;
+            height: 35px;
+            font-size: 1.2rem;
+            text-align: center;
+            border: 2px dashed #94A3B8;
+            border-radius: 12px;
+            background-color: #F8FAFC;
+            color: #475569;
+        }
+        .retenue-top:focus {
+            outline: none;
+            border-color: #F59E0B;
+            border-style: solid;
+            background-color: #FEF3C7;
+        }
+        .crossed {
+            text-decoration: line-through;
+            text-decoration-thickness: 4px;
+            text-decoration-color: #475569;
+            opacity: 0.6;
+        }
+
+        /* Couleurs pédagogiques */
+        .col-u { color: #2563EB; } /* Bleu Unités */
+        .col-d { color: #DC2626; } /* Rouge Dizaines */
+        .col-c { color: #16A34A; } /* Vert Centaines */
+
+        .input-u { border-color: #93C5FD; color: #2563EB; }
+        .input-d { border-color: #FCA5A5; color: #DC2626; }
+        .input-c { border-color: #86EFAC; color: #16A34A; }
+
+        /* Confettis */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f2d74e;
+            opacity: 0;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-8 text-slate-800">
+
+    <!-- Modal Prénom -->
+    <div id="name-modal" class="fixed inset-0 bg-slate-800/90 z-50 flex items-center justify-center transition-opacity duration-300">
+        <div class="bg-white p-8 md:p-12 rounded-[2rem] text-center max-w-md w-full mx-4 shadow-2xl transform transition-transform pop-in">
+            <div class="text-7xl mb-6">🦉</div>
+            <h2 class="text-3xl font-bold text-sky-800 mb-2">Bienvenue !</h2>
+            <p class="text-slate-500 mb-6 font-semibold">Comment t'appelles-tu ?</p>
+            <input type="text" id="player-name-input" class="w-full text-center text-2xl p-4 border-4 border-sky-100 rounded-2xl mb-6 focus:border-sky-400 outline-none transition-colors" placeholder="Ton prénom" onkeypress="if(event.key === 'Enter') startGame()">
+            <button onclick="startGame()" class="bg-green-500 text-white font-bold text-2xl py-4 px-8 rounded-2xl w-full shadow-[0_6px_0_#166534] hover:translate-y-[4px] hover:shadow-[0_2px_0_#166534] transition-all active:scale-95">
+                C'est parti ! 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- En-tête -->
+    <header class="text-center mb-6 pop-in">
+        <div class="flex items-center justify-center gap-4 mb-2">
+            <div class="text-6xl" id="mascot">🦉</div>
+            <h1 class="text-4xl md:text-5xl font-bold text-sky-800 tracking-wide" style="text-shadow: 2px 2px 0px white;">
+                Les Soustractions <span id="display-name" class="text-sky-600"></span>
+            </h1>
+        </div>
+        <div class="flex flex-wrap justify-center gap-4 mt-4">
+            <p class="text-xl text-sky-700 font-semibold bg-white px-6 py-2 rounded-full inline-block shadow-sm">
+                Score : <span id="score" class="text-amber-500 font-bold text-2xl">0</span> 🌟
+            </p>
+            <p id="streak-container" class="text-xl text-sky-700 font-semibold bg-white px-6 py-2 rounded-full inline-block shadow-sm">
+                Série : <span id="streak" class="text-orange-500 font-bold text-2xl">0</span>/<span id="streak-target">5</span> 🔥
+            </p>
+        </div>
+    </header>
+
+    <!-- Sélection du niveau -->
+    <div class="bg-white p-3 rounded-2xl shadow-md mb-8 flex flex-wrap justify-center gap-2 pop-in" style="animation-delay: 0.1s;">
+        <button onclick="setLevel(1)" id="btn-lvl-1" class="px-4 py-2 rounded-xl font-bold transition-all bg-sky-500 text-white shadow-md transform hover:scale-105">Niv 1 : 2 chiffres (Facile)</button>
+        <button onclick="setLevel(2)" id="btn-lvl-2" class="px-4 py-2 rounded-xl font-bold transition-all bg-slate-100 text-slate-400 opacity-60 cursor-not-allowed" disabled>🔒 Niv 2 : 2 chiffres (Retenue)</button>
+        <button onclick="setLevel(3)" id="btn-lvl-3" class="px-4 py-2 rounded-xl font-bold transition-all bg-slate-100 text-slate-400 opacity-60 cursor-not-allowed" disabled>🔒 Niv 3 : 3 chiffres (Facile)</button>
+        <button onclick="setLevel(4)" id="btn-lvl-4" class="px-4 py-2 rounded-xl font-bold transition-all bg-slate-100 text-slate-400 opacity-60 cursor-not-allowed" disabled>🔒 Niv 4 : 3 chiffres (Retenue)</button>
+        <button onclick="setLevel(5)" id="btn-lvl-5" class="px-4 py-2 rounded-xl font-bold transition-all bg-slate-100 text-slate-400 opacity-60 cursor-not-allowed" disabled>🔒 Niv 5 : Test Ultime !</button>
+    </div>
+
+    <!-- Zone principale de l'opération -->
+    <main class="bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl relative pop-in" style="animation-delay: 0.2s;">
+        
+        <!-- Feedback visuel -->
+        <div id="feedback" class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-amber-400 text-white px-6 py-2 rounded-full font-bold text-lg shadow-lg opacity-0 transition-opacity duration-300 whitespace-nowrap z-10">
+            Message ici
+        </div>
+
+        <div class="flex justify-center">
+            <table class="text-5xl font-bold text-center border-separate" style="border-spacing: 12px 10px;">
+                <!-- Ligne des retenues du haut (nouvelles valeurs) -->
+                <tr>
+                    <td></td>
+                    <td class="cell-c"><input type="number" max="19" class="retenue-top" id="ret-top-c" onclick="this.select()" /></td>
+                    <td class="cell-d"><input type="number" max="19" class="retenue-top" id="ret-top-d" onclick="this.select()" /></td>
+                    <td class="cell-u"><input type="number" max="19" class="retenue-top" id="ret-top-u" onclick="this.select()" /></td>
+                </tr>
+                
+                <!-- Premier Nombre (cliquable pour barrer) -->
+                <tr>
+                    <td></td>
+                    <td class="cell-c col-c cursor-pointer hover:opacity-70 transition-all select-none" id="num1-c" onclick="toggleCross(this)">0</td>
+                    <td class="cell-d col-d cursor-pointer hover:opacity-70 transition-all select-none" id="num1-d" onclick="toggleCross(this)">0</td>
+                    <td class="cell-u col-u cursor-pointer hover:opacity-70 transition-all select-none" id="num1-u" onclick="toggleCross(this)">0</td>
+                </tr>
+                
+                <!-- Deuxième Nombre (sans retenues en bas) -->
+                <tr>
+                    <td class="text-slate-400 pr-4">-</td>
+                    <td class="cell-c col-c" id="num2-c">0</td>
+                    <td class="cell-d col-d" id="num2-d">0</td>
+                    <td class="cell-u col-u" id="num2-u">0</td>
+                </tr>
+                
+                <!-- Ligne de séparation -->
+                <tr>
+                    <td colspan="4"><div class="h-1.5 w-full bg-slate-800 rounded-full my-2"></div></td>
+                </tr>
+                
+                <!-- Ligne du Résultat -->
+                <tr>
+                    <td></td>
+                    <td class="cell-c"><input type="number" max="9" class="input-res input-c" id="res-c" onclick="this.select()" /></td>
+                    <td class="cell-d"><input type="number" max="9" class="input-res input-d" id="res-d" onclick="this.select()" /></td>
+                    <td class="cell-u"><input type="number" max="9" class="input-res input-u" id="res-u" onclick="this.select()" /></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Bouton d'action -->
+        <div class="mt-10 text-center">
+            <button onclick="checkResult()" class="bg-green-500 hover:bg-green-600 text-white text-2xl font-bold py-4 px-10 rounded-2xl shadow-[0_6px_0_#166534] hover:shadow-[0_2px_0_#166534] hover:translate-y-[4px] transition-all active:scale-95">
+                Vérifier ! ✔️
+            </button>
+        </div>
+        
+        <!-- Aide pédagogique -->
+        <div class="mt-6 text-center text-slate-500 text-sm font-semibold">
+            <p>Rappel : <span class="col-u">Bleu = Unités</span>, <span class="col-d">Rouge = Dizaines</span>, <span class="col-c">Vert = Centaines</span></p>
+            <p class="mt-1">Astuce : <strong>Clique sur un chiffre en haut pour le barrer</strong> (le casser). Écris le nouveau nombre dans la case au-dessus.</p>
+        </div>
+    </main>
+
+    <script>
+        let currentLevel = 1;
+        let score = 0;
+        let currentNum1 = 0;
+        let currentNum2 = 0;
+        let consecutiveWins = 0;
+        let unlockedLevel = 1;
+        let playerName = "";
+
+        const mascot = document.getElementById('mascot');
+        const feedback = document.getElementById('feedback');
+        
+        // Initialisation
+        window.onload = () => {
+            setupInputs();
+            updateStreakDisplay();
+            // L'opération sera générée après la saisie du prénom
+        };
+
+        function startGame() {
+            const input = document.getElementById('player-name-input');
+            if (input.value.trim() !== "") {
+                playerName = input.value.trim();
+                document.getElementById('display-name').innerText = "de " + playerName;
+                
+                // Cacher la modale
+                const modal = document.getElementById('name-modal');
+                modal.style.opacity = '0';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    generateOperation();
+                    showMessage(`C'est parti ${playerName} ! Tu peux le faire 💪`, true);
+                }, 300);
+            } else {
+                input.classList.add('animate-error', 'border-red-400');
+                setTimeout(() => input.classList.remove('animate-error', 'border-red-400'), 400);
+            }
+        }
+
+        // Gérer le passage automatique au champ suivant (de droite à gauche)
+        function setupInputs() {
+            const inputs = document.querySelectorAll('.input-res');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value.length > 1) this.value = this.value.slice(-1); // 1 seul chiffre
+                    if (this.value !== "") {
+                        if (this.id === 'res-u') document.getElementById('res-d').focus();
+                        else if (this.id === 'res-d' && currentLevel >= 3) document.getElementById('res-c').focus();
+                    }
+                });
+            });
+
+            // Limiter les retenues à 2 chiffres (pour le cassage, ex: 14)
+            document.querySelectorAll('.retenue-top').forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value.length > 2) this.value = this.value.slice(-2);
+                });
+            });
+        }
+
+        function setLevel(lvl) {
+            if (lvl > unlockedLevel) return; // Sécurité
+            currentLevel = lvl;
+            consecutiveWins = 0; // On réinitialise la série au changement de niveau
+            updateStreakDisplay();
+            
+            // Mise à jour visuelle des boutons
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`btn-lvl-${i}`);
+                if (i > unlockedLevel) continue; // On ignore le style des boutons bloqués
+                
+                if (i === lvl) {
+                    btn.className = `px-4 py-2 rounded-xl font-bold transition-all text-white shadow-md transform hover:scale-105 ${lvl === 5 ? 'bg-amber-500' : 'bg-sky-500'}`;
+                } else {
+                    btn.className = "px-4 py-2 rounded-xl font-bold transition-all bg-slate-100 text-slate-600 hover:bg-sky-100";
+                }
+            }
+            generateOperation();
+        }
+
+        function unlockLevel(lvl) {
+            const btn = document.getElementById(`btn-lvl-${lvl}`);
+            btn.disabled = false;
+            btn.classList.remove('opacity-60', 'cursor-not-allowed', 'text-slate-400');
+            btn.classList.add('text-slate-600', 'hover:bg-sky-100');
+            btn.innerText = btn.innerText.replace('🔒 ', '');
+        }
+
+        function updateStreakDisplay() {
+            const streakContainer = document.getElementById('streak-container');
+            const streakEl = document.getElementById('streak');
+            const streakTarget = document.getElementById('streak-target');
+            
+            streakEl.innerText = consecutiveWins;
+            streakTarget.innerText = currentLevel === 5 ? "10" : "5";
+            
+            if (currentLevel < unlockedLevel && currentLevel !== 5) {
+                // Cache l'objectif de série si on s'entraîne sur un ancien niveau (sauf le test ultime)
+                streakContainer.style.display = 'none';
+            } else {
+                streakContainer.style.display = 'inline-block';
+            }
+        }
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateOperation() {
+            let h1=0, d1=0, u1=0;
+            let h2=0, d2=0, u2=0;
+
+            let simulatedLevel = currentLevel;
+            if (currentLevel === 5) {
+                simulatedLevel = getRandomInt(1, 4); // Le Test Ultime mélange tous les niveaux
+            }
+
+            if (simulatedLevel === 1) {
+                // 2 chiffres, sans retenue
+                d1 = getRandomInt(2, 9);
+                u1 = getRandomInt(1, 9);
+                d2 = getRandomInt(1, d1 - 1);
+                u2 = getRandomInt(0, u1);
+            } 
+            else if (currentLevel === 2) {
+                // 2 chiffres, avec retenue (u1 < u2)
+                d1 = getRandomInt(3, 9);
+                u1 = getRandomInt(0, 8);
+                d2 = getRandomInt(1, d1 - 2); 
+                u2 = getRandomInt(u1 + 1, 9);
+            }
+            else if (currentLevel === 3) {
+                // 3 chiffres, sans retenue
+                h1 = getRandomInt(2, 9);
+                d1 = getRandomInt(1, 9);
+                u1 = getRandomInt(1, 9);
+                h2 = getRandomInt(1, h1 - 1);
+                d2 = getRandomInt(0, d1);
+                u2 = getRandomInt(0, u1);
+            }
+            else if (currentLevel === 4) {
+                // 3 chiffres, avec retenue (au moins une)
+                h1 = getRandomInt(3, 9);
+                d1 = getRandomInt(1, 8);
+                u1 = getRandomInt(0, 8);
+                
+                h2 = getRandomInt(1, h1 - 2);
+                // Forcer une retenue sur les unités
+                u2 = getRandomInt(u1 + 1, 9);
+                // Possibilité de retenue sur les dizaines aussi (d1-1 car l'unité a emprunté)
+                d2 = getRandomInt(0, 9); 
+                if (d2 >= d1) d2 = getRandomInt(0, d1 - 1); // Simplification pour éviter la double retenue trop complexe au début, ou l'inverse.
+                // On va forcer une retenue aléatoire
+                if (Math.random() > 0.5) {
+                    d2 = getRandomInt(d1, 8); // Retenue dizaine
+                }
+            }
+
+            currentNum1 = h1 * 100 + d1 * 10 + u1;
+            currentNum2 = h2 * 100 + d2 * 10 + u2;
+
+            // Affichage
+            document.getElementById('num1-u').innerText = u1;
+            document.getElementById('num1-d').innerText = d1;
+            document.getElementById('num2-u').innerText = u2;
+            document.getElementById('num2-d').innerText = d2;
+
+            const cellsC = document.querySelectorAll('.cell-c');
+            if (simulatedLevel >= 3) {
+                document.getElementById('num1-c').innerText = h1;
+                document.getElementById('num2-c').innerText = h2;
+                cellsC.forEach(el => el.style.display = 'table-cell');
+            } else {
+                cellsC.forEach(el => el.style.display = 'none');
+            }
+
+            resetInputs();
+            document.getElementById('res-u').focus(); // Focus sur les unités
+            mascot.innerText = "🦉";
+            mascot.classList.remove('animate-win');
+            document.querySelector('main').classList.remove('animate-error');
+        }
+
+        function toggleCross(el) {
+            el.classList.toggle('crossed');
+        }
+
+        function resetInputs() {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.value = "";
+                input.classList.remove('bg-red-100', 'bg-green-100');
+            });
+            document.querySelectorAll('.crossed').forEach(el => {
+                el.classList.remove('crossed');
+            });
+        }
+
+        function showMessage(text, isSuccess) {
+            feedback.innerText = text;
+            feedback.className = `absolute -top-6 left-1/2 transform -translate-x-1/2 px-6 py-2 rounded-full font-bold text-lg shadow-lg transition-opacity duration-300 whitespace-nowrap z-10 ${isSuccess ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`;
+            feedback.style.opacity = '1';
+            setTimeout(() => { feedback.style.opacity = '0'; }, 3000);
+        }
+
+        function triggerConfetti() {
+            const colors = ['#2563EB', '#DC2626', '#16A34A', '#FBBF24', '#A855F7'];
+            for (let i = 0; i < 50; i++) {
+                let conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animation = `popIn ${Math.random() * 1 + 0.5}s ease forwards`;
+                
+                document.body.appendChild(conf);
+                
+                let startY = -10;
+                let endY = window.innerHeight;
+                let duration = Math.random() * 2000 + 1000;
+                let start = performance.now();
+
+                function fall(time) {
+                    let progress = (time - start) / duration;
+                    if (progress < 1) {
+                        conf.style.top = startY + (endY - startY) * progress + 'px';
+                        conf.style.transform = `rotate(${progress * 720}deg)`;
+                        conf.style.opacity = progress > 0.8 ? (1 - progress) * 5 : 1;
+                        requestAnimationFrame(fall);
+                    } else {
+                        conf.remove();
+                    }
+                }
+                requestAnimationFrame(fall);
+            }
+        }
+
+        function checkResult() {
+            const valU = document.getElementById('res-u').value;
+            const valD = document.getElementById('res-d').value;
+            const isThreeDigits = document.querySelector('.cell-c').style.display === 'table-cell';
+            const valC = isThreeDigits ? document.getElementById('res-c').value : "0";
+
+            if (valU === "" || valD === "" || (isThreeDigits && valC === "")) {
+                showMessage(`Allez ${playerName || 'champion'}, remplis toutes les cases !`, false);
+                document.querySelector('main').classList.remove('animate-error');
+                void document.querySelector('main').offsetWidth; // trigger reflow
+                document.querySelector('main').classList.add('animate-error');
+                return;
+            }
+
+            const userTotal = parseInt(valC || 0) * 100 + parseInt(valD) * 10 + parseInt(valU);
+            const expectedTotal = currentNum1 - currentNum2;
+
+            if (userTotal === expectedTotal) {
+                // Succès
+                consecutiveWins++;
+                
+                if (currentLevel === 5) {
+                    if (consecutiveWins >= 10) {
+                        showMessage(`INCROYABLE ${playerName} !! Tu as réussi le TEST ULTIME ! 👑🎉`, true);
+                        consecutiveWins = 0; // Remise à zéro pour rejouer
+                        // Confettis multiples pour la victoire ultime
+                        for(let i=0; i<3; i++) setTimeout(triggerConfetti, i*800); 
+                    } else {
+                        showMessage(`Génial ${playerName} ! Plus que ${10 - consecutiveWins} ! 🔥`, true);
+                    }
+                } else if (consecutiveWins >= 5 && currentLevel === unlockedLevel && unlockedLevel < 5) {
+                    unlockedLevel++;
+                    unlockLevel(unlockedLevel);
+                    showMessage(`🔓 Super ${playerName} ! Niveau ${unlockedLevel} débloqué ! 🌟`, true);
+                    consecutiveWins = 0; // Remise à zéro pour le prochain palier
+                } else {
+                    showMessage(`Bravo ${playerName} ! Continue ! 🏆`, true);
+                }
+                
+                updateStreakDisplay();
+
+                mascot.innerText = "🥳";
+                mascot.classList.add('animate-win');
+                triggerConfetti();
+                
+                document.querySelectorAll('.input-res').forEach(i => i.classList.add('bg-green-100'));
+                
+                score += 10;
+                document.getElementById('score').innerText = score;
+                
+                setTimeout(() => {
+                    generateOperation();
+                }, 2500);
+            } else {
+                // Erreur avec pédagogie
+                consecutiveWins = 0; // Perte de la série
+                updateStreakDisplay();
+                
+                mascot.innerText = "🤔";
+                document.querySelector('main').classList.remove('animate-error');
+                void document.querySelector('main').offsetWidth;
+                document.querySelector('main').classList.add('animate-error');
+
+                const expU = expectedTotal % 10;
+                const expD = Math.floor((expectedTotal / 10)) % 10;
+                const expC = Math.floor((expectedTotal / 100));
+
+                if (parseInt(valU) !== expU) {
+                    showMessage(`Presque ${playerName} ! Recompte les unités (bleu).`, false);
+                    document.getElementById('res-u').value = "";
+                    document.getElementById('res-u').focus();
+                } else if (parseInt(valD) !== expD) {
+                    showMessage(`Les unités sont justes ${playerName}, recompte les dizaines !`, false);
+                    document.getElementById('res-d').value = "";
+                    document.getElementById('res-d').focus();
+                } else {
+                    showMessage(`Vérifie la colonne des centaines, ${playerName} !`, false);
+                    document.getElementById('res-c').value = "";
+                    document.getElementById('res-c').focus();
+                }
+
+                // Rappel cassage dynamique si les unités n'étaient pas suffisantes au départ
+                const u1 = currentNum1 % 10;
+                const u2 = currentNum2 % 10;
+                if (u1 < u2 && parseInt(valU) !== expU) {
+                    setTimeout(() => {
+                        showMessage(`As-tu pensé à faire tes échanges (casser), ${playerName} ? 😉`, false);
+                    }, 2000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

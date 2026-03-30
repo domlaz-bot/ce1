@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anglais CE1 : Les Sentiments</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts pour un style cartoon/enfantin -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Configuration Tailwind et animations personnalisées -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Fredoka', 'sans-serif'],
+                    },
+                    colors: {
+                        kidblue: '#87CEEB',
+                        kidpink: '#FFB6C1',
+                        kidgreen: '#98FB98',
+                        kidyellow: '#FFFACD',
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 2s infinite',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pop': 'pop 0.3s ease-out forwards',
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-2px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(4px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-6px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(6px, 0, 0)' }
+                        },
+                        pop: {
+                            '0%': { transform: 'scale(0.8)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Styles additionnels pour éviter la sélection de texte accidentelle par les enfants */
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-blue-50 to-kidblue min-h-screen flex items-center justify-center p-4">
+
+    <!-- Écran d'accueil -->
+    <div id="start-screen" class="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full text-center border-4 border-white animate-pop">
+        <h1 class="text-4xl md:text-5xl font-bold text-blue-600 mb-6 drop-shadow-sm">
+            Apprends l'anglais ! 🇬🇧
+        </h1>
+        <div class="text-8xl mb-6">😄😴😡</div>
+        <p class="text-xl text-gray-600 mb-8 font-medium">
+            Écoute bien la voix et trouve la bonne image.<br>Prêt(e) à jouer ?
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button onclick="openRevisionMode()" class="bg-blue-400 hover:bg-blue-500 text-white text-2xl font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 active:scale-95">
+                📖 Réviser
+            </button>
+            <button onclick="startGame()" class="bg-green-500 hover:bg-green-600 text-white text-3xl font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105 active:scale-95 animate-bounce-slow">
+                Jouer ! 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- Écran de révision (caché par défaut) -->
+    <div id="revision-screen" class="hidden bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-w-4xl w-full border-4 border-white relative animate-pop">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold text-blue-600">Mode Révision 📖</h2>
+            <button onclick="closeRevisionMode()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </button>
+        </div>
+        <p class="text-xl text-gray-700 mb-6 text-center font-medium">Clique sur une carte pour écouter la prononciation 🔊</p>
+        <div id="revision-cards-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+            <!-- Les cartes de révision seront injectées ici par JavaScript -->
+        </div>
+        <div class="text-center">
+            <button onclick="startGameFromRevision()" class="bg-green-500 hover:bg-green-600 text-white text-2xl font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 active:scale-95">
+                C'est parti ! Jouer 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- Écran de jeu (caché par défaut) -->
+    <div id="game-screen" class="hidden bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-w-4xl w-full border-4 border-white relative">
+        
+        <!-- En-tête du jeu -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-2xl font-bold text-lg">
+                Score: <span id="score-display">0</span>/6
+            </div>
+            <button onclick="resetGame()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Zone Audio -->
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Écoute l'audio et clique sur la bonne image !</h2>
+            <button id="audio-btn" onclick="playCurrentAudio()" class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-6 shadow-lg transition-transform transform hover:scale-110 active:scale-95 mx-auto flex items-center justify-center animate-pulse-fast">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+            </button>
+            <p class="text-blue-500 font-semibold mt-3 text-lg cursor-pointer hover:underline" onclick="playCurrentAudio()">
+                Clique ici pour écouter 🔊
+            </p>
+        </div>
+
+        <!-- Grille des cartes -->
+        <div id="cards-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            <!-- Les cartes seront injectées ici par JavaScript -->
+        </div>
+
+        <!-- Feedback Overlay (Bravo / Oups) -->
+        <div id="feedback-overlay" class="hidden absolute inset-0 bg-white bg-opacity-90 rounded-3xl flex flex-col items-center justify-center z-10 transition-opacity">
+            <div id="feedback-icon" class="text-8xl mb-4 animate-pop">🎉</div>
+            <h2 id="feedback-text" class="text-5xl font-bold text-green-500 animate-pop">Bravo !</h2>
+        </div>
+    </div>
+
+    <!-- Écran de fin de jeu (caché par défaut) -->
+    <div id="end-screen" class="hidden bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full text-center border-4 border-yellow-400 animate-pop">
+        <h1 class="text-5xl font-bold text-yellow-500 mb-6">Félicitations ! 🏆</h1>
+        <div class="text-8xl mb-6">🌟👏🎊</div>
+        <p class="text-2xl text-gray-700 mb-8 font-medium">
+            Tu connais toutes les émotions en anglais !
+        </p>
+        <button onclick="resetGame()" class="bg-blue-500 hover:bg-blue-600 text-white text-2xl font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105 active:scale-95">
+            Rejouer 🔄
+        </button>
+    </div>
+
+    <!-- LOGIQUE JAVASCRIPT -->
+    <script>
+        // 1. Données du jeu (Vocabulaire)
+        const vocabulary = [
+            { id: 'happy', word: 'Happy', translation: 'Joyeux', emoji: '😄', color: 'bg-yellow-100', borderColor: 'border-yellow-400' },
+            { id: 'angry', word: 'Angry', translation: 'En colère', emoji: '😡', color: 'bg-red-100', borderColor: 'border-red-400' },
+            { id: 'sleepy', word: 'Sleepy', translation: 'Endormi', emoji: '😴', color: 'bg-indigo-100', borderColor: 'border-indigo-400' },
+            { id: 'hungry', word: 'Hungry', translation: 'Affamé', emoji: '🤤', color: 'bg-orange-100', borderColor: 'border-orange-400' },
+            { id: 'sad', word: 'Sad', translation: 'Triste', emoji: '😢', color: 'bg-blue-100', borderColor: 'border-blue-400' },
+            { id: 'scared', word: 'Scared', translation: 'Effrayé', emoji: '😨', color: 'bg-purple-100', borderColor: 'border-purple-400' }
+        ];
+
+        // 2. État du jeu
+        let remainingEmotions = [];
+        let currentEmotion = null;
+        let score = 0;
+        let isLocked = false; // Verrouille les clics pendant les animations
+
+        // Éléments du DOM
+        const startScreen = document.getElementById('start-screen');
+        const revisionScreen = document.getElementById('revision-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const revisionCardsGrid = document.getElementById('revision-cards-grid');
+        const cardsGrid = document.getElementById('cards-grid');
+        const scoreDisplay = document.getElementById('score-display');
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const feedbackText = document.getElementById('feedback-text');
+        const audioBtn = document.getElementById('audio-btn');
+
+        // Vérification du support de la synthèse vocale
+        if (!('speechSynthesis' in window)) {
+            alert("⚠️ Attention : Ton navigateur ne supporte pas l'audio. Essaie avec Google Chrome ou Safari.");
+        }
+
+        // 3. Fonctions de la Synthèse Vocale
+        function speakText(text, callback = null) {
+            // Annule tout audio en cours
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US'; // Anglais américain
+            utterance.rate = 0.85; // Un peu plus lent pour les enfants
+            utterance.pitch = 1.1; // Voix légèrement plus aiguë et chaleureuse
+
+            const isGameActive = !gameScreen.classList.contains('hidden');
+
+            if (callback) {
+                utterance.onend = callback;
+            }
+
+            // Animation du bouton pendant la lecture (uniquement si le jeu est actif)
+            if (isGameActive && audioBtn) {
+                audioBtn.classList.remove('animate-pulse-fast');
+                audioBtn.classList.add('scale-110', 'bg-blue-600', 'ring-4', 'ring-blue-300');
+            }
+            
+            utterance.onend = () => {
+                if (isGameActive && audioBtn) {
+                    audioBtn.classList.remove('scale-110', 'bg-blue-600', 'ring-4', 'ring-blue-300');
+                    audioBtn.classList.add('animate-pulse-fast');
+                }
+                if(callback) callback();
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function playCurrentAudio() {
+            if (!currentEmotion || isLocked) return;
+            // Intègre la phrase complète requise par les consignes
+            const textToSay = `How are you today? ... ${currentEmotion.word}`;
+            speakText(textToSay);
+        }
+
+        // --- Logique du mode Révision ---
+        function openRevisionMode() {
+            startScreen.classList.add('hidden');
+            revisionScreen.classList.remove('hidden');
+            generateRevisionCards();
+        }
+
+        function closeRevisionMode() {
+            revisionScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            window.speechSynthesis.cancel();
+        }
+
+        function startGameFromRevision() {
+            revisionScreen.classList.add('hidden');
+            window.speechSynthesis.cancel();
+            startGame();
+        }
+
+        function generateRevisionCards() {
+            revisionCardsGrid.innerHTML = '';
+            vocabulary.forEach(item => {
+                const card = document.createElement('button');
+                card.className = `${item.color} ${item.borderColor} border-b-4 rounded-2xl p-4 flex flex-col items-center justify-center transition-all duration-200 card-hover focus:outline-none focus:ring-4 focus:ring-blue-400 relative`;
+                
+                // Au clic, on lit seulement le mot en anglais
+                card.onclick = () => speakText(item.word);
+                
+                card.innerHTML = `
+                    <div class="text-6xl mb-2 drop-shadow-md">${item.emoji}</div>
+                    <div class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        ${item.word} <span class="text-sm">🔊</span>
+                    </div>
+                    <div class="text-sm font-medium text-gray-600 mt-2 pt-2 border-t border-gray-300 border-opacity-50 w-full text-center">
+                        ${item.translation}
+                    </div>
+                `;
+                revisionCardsGrid.appendChild(card);
+            });
+        }
+
+        // 4. Logique du jeu
+        function startGame() {
+            startScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            
+            // Initialisation de la partie
+            score = 0;
+            scoreDisplay.innerText = score;
+            // Cloner le tableau pour piocher dedans
+            remainingEmotions = [...vocabulary]; 
+            
+            // Mélanger l'ordre des cartes pour l'affichage
+            const shuffledVocabulary = [...vocabulary].sort(() => Math.random() - 0.5);
+            
+            generateCards(shuffledVocabulary);
+            nextRound();
+        }
+
+        function resetGame() {
+            window.speechSynthesis.cancel();
+            startGame();
+        }
+
+        function generateCards(cardsArray) {
+            cardsGrid.innerHTML = '';
+            // On affiche les cartes passées en paramètre
+            cardsArray.forEach(item => {
+                const card = document.createElement('button');
+                card.id = `card-${item.id}`;
+                card.className = `${item.color} ${item.borderColor} border-b-4 rounded-2xl p-4 flex flex-col items-center justify-center transition-all duration-200 card-hover focus:outline-none focus:ring-4 focus:ring-blue-400`;
+                card.onclick = () => checkAnswer(item.id, card);
+                
+                card.innerHTML = `
+                    <div class="text-6xl mb-2 drop-shadow-md">${item.emoji}</div>
+                    <div class="text-xl font-bold text-gray-800 opacity-0 transition-opacity duration-500 word-label">${item.word}</div>
+                `;
+                cardsGrid.appendChild(card);
+            });
+        }
+
+        function nextRound() {
+            if (remainingEmotions.length === 0) {
+                endGame();
+                return;
+            }
+
+            // Choisir une émotion aléatoire parmi celles restantes
+            const randomIndex = Math.floor(Math.random() * remainingEmotions.length);
+            currentEmotion = remainingEmotions[randomIndex];
+            
+            // Retirer l'émotion du tableau des mots restants à trouver
+            remainingEmotions.splice(randomIndex, 1);
+
+            // Jouer le son automatiquement avec un petit délai
+            setTimeout(() => {
+                playCurrentAudio();
+            }, 500);
+        }
+
+        function checkAnswer(selectedId, cardElement) {
+            if (isLocked) return; // Empêche de cliquer partout pendant une animation
+
+            if (selectedId === currentEmotion.id) {
+                // BONNE RÉPONSE
+                isLocked = true;
+                score++;
+                scoreDisplay.innerText = score;
+                
+                // Effet visuel sur la carte
+                cardElement.classList.add('ring-4', 'ring-green-500', 'bg-green-100');
+                
+                // Révéler le texte en anglais
+                const wordLabel = cardElement.querySelector('.word-label');
+                if (wordLabel) wordLabel.classList.remove('opacity-0');
+                
+                showFeedback(true, () => {
+                    // On garde la carte visible, on la grise légèrement et on désactive le clic
+                    cardElement.classList.add('opacity-50');
+                    cardElement.classList.remove('card-hover');
+                    cardElement.onclick = null;
+                    
+                    isLocked = false;
+                    nextRound();
+                });
+
+            } else {
+                // MAUVAISE RÉPONSE
+                isLocked = true;
+                
+                // Animation d'erreur sur la carte cliquée
+                cardElement.classList.add('animate-shake', 'ring-4', 'ring-red-500');
+                
+                showFeedback(false, () => {
+                    cardElement.classList.remove('animate-shake', 'ring-4', 'ring-red-500');
+                    isLocked = false;
+                    // On rejoue le son pour l'aider
+                    playCurrentAudio(); 
+                });
+            }
+        }
+
+        function showFeedback(isSuccess, callback) {
+            feedbackOverlay.classList.remove('hidden');
+            
+            if (isSuccess) {
+                feedbackIcon.innerText = '✨😄✨';
+                feedbackText.innerText = 'Super !';
+                feedbackText.className = 'text-5xl font-bold text-green-500 animate-pop';
+                // Petit effet sonore joyeux via Speech Synthesis (astuce sans fichier audio externe)
+                speakText('Yes! Good job!'); 
+            } else {
+                feedbackIcon.innerText = '🙊';
+                feedbackText.innerText = 'Oups, essaie encore !';
+                feedbackText.className = 'text-5xl font-bold text-red-500 animate-pop';
+            }
+
+            setTimeout(() => {
+                feedbackOverlay.classList.add('hidden');
+                if (callback) callback();
+            }, 1800);
+        }
+
+        function endGame() {
+            gameScreen.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+            speakText("Congratulations! You are very smart!");
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Spatiale : Mathématiques CE1</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts pour un style ludique -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        // Configuration de Tailwind pour étendre le thème
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Nunito', 'sans-serif'],
+                    },
+                    colors: {
+                        'space-dark': '#1a1b41',
+                        'space-light': '#292b68',
+                        'alien-green': '#4ade80',
+                        'star-yellow': '#fde047',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1b41 0%, #3b2c63 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animations personnalisées */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Confettis pour le feedback visuel */
+        .confetti {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #fde047;
+            border-radius: 50%;
+            z-index: 50;
+            pointer-events: none;
+            animation: fall 1.5s linear forwards;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-20px) scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(200px) scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        /* Etoiles d'arrière-plan */
+        .bg-stars {
+            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 4px);
+            background-size: 100px 100px;
+            background-position: 0 0;
+            animation: twinkle 5s linear infinite;
+        }
+        
+        @keyframes twinkle {
+            0% { background-position: 0 0; }
+            100% { background-position: 100px 100px; }
+        }
+    </style>
+</head>
+<body class="bg-stars flex flex-col items-center justify-center p-4 selection:bg-alien-green selection:text-space-dark">
+
+    <!-- ECRAN D'ACCUEIL -->
+    <div id="screen-home" class="w-full max-w-2xl text-center space-y-8 animate-pop">
+        <div class="text-6xl animate-float inline-block">🚀</div>
+        <h1 class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-star-yellow to-yellow-200 drop-shadow-lg">
+            Mission Spatiale Mathématique
+        </h1>
+        <p class="text-xl md:text-2xl text-blue-200 font-bold">Choisis ton entraînement, astronaute !</p>
+        
+        <div class="flex flex-col md:flex-row gap-4 justify-center items-center mt-8">
+            <button onclick="startGame('complement')" class="w-full md:w-auto px-8 py-4 bg-purple-500 hover:bg-purple-400 text-white rounded-3xl shadow-[0_6px_0_#7e22ce] hover:shadow-[0_4px_0_#7e22ce] hover:translate-y-[2px] transition-all text-xl font-bold flex items-center justify-center gap-3">
+                <span>🧩</span> Compléments (10)
+            </button>
+            <button onclick="startGame('addition')" class="w-full md:w-auto px-8 py-4 bg-blue-500 hover:bg-blue-400 text-white rounded-3xl shadow-[0_6px_0_#1d4ed8] hover:shadow-[0_4px_0_#1d4ed8] hover:translate-y-[2px] transition-all text-xl font-bold flex items-center justify-center gap-3">
+                <span>➕</span> Additions
+            </button>
+            <button onclick="startGame('subtraction')" class="w-full md:w-auto px-8 py-4 bg-rose-500 hover:bg-rose-400 text-white rounded-3xl shadow-[0_6px_0_#be123c] hover:shadow-[0_4px_0_#be123c] hover:translate-y-[2px] transition-all text-xl font-bold flex items-center justify-center gap-3">
+                <span>➖</span> Soustractions
+            </button>
+        </div>
+    </div>
+
+    <!-- ECRAN DE JEU -->
+    <div id="screen-game" class="hidden w-full max-w-2xl flex-col items-center space-y-6">
+        
+        <!-- En-tête : Score et Retour -->
+        <div class="w-full flex justify-between items-center bg-white/10 p-4 rounded-3xl backdrop-blur-sm border border-white/20">
+            <button onclick="showHome()" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full font-bold transition-colors flex items-center gap-2">
+                <span>🏠</span> Retour
+            </button>
+            <div class="text-2xl font-black text-star-yellow flex items-center gap-2">
+                <span>⭐ Score:</span>
+                <span id="score-display" class="bg-black/30 px-4 py-1 rounded-full">0</span>
+            </div>
+        </div>
+
+        <!-- Consigne -->
+        <h2 id="instruction" class="text-2xl md:text-3xl font-bold text-center text-blue-100">
+            Trouve la bonne réponse !
+        </h2>
+
+        <!-- Zone de la question -->
+        <div class="relative w-full bg-white rounded-[3rem] p-8 md:p-12 shadow-2xl text-center border-b-8 border-gray-200">
+            <!-- Personnage décoratif -->
+            <div id="mascot" class="absolute -top-12 left-1/2 transform -translate-x-1/2 text-6xl animate-float">👽</div>
+            
+            <div id="question-display" class="text-5xl md:text-7xl font-black text-space-dark tracking-wider my-4">
+                8 + ? = 10
+            </div>
+
+            <!-- Feedback Overlay (Bravo / Oups) -->
+            <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center rounded-[3rem] bg-white/90 backdrop-blur-sm hidden z-10">
+                <div id="feedback-message" class="text-4xl md:text-6xl font-black"></div>
+            </div>
+        </div>
+
+        <!-- Boutons de réponses (Choix multiples) -->
+        <div id="answers-grid" class="w-full grid grid-cols-2 gap-4 md:gap-6 mt-4">
+            <!-- Généré par JS -->
+        </div>
+
+    </div>
+
+    <!-- SCRIPT JAVASCRIPT -->
+    <script>
+        // --- ETAT DU JEU ---
+        const state = {
+            mode: null,
+            score: 0,
+            currentCorrectAnswer: 0,
+            isAnswering: false
+        };
+
+        // --- ELEMENTS DU DOM ---
+        const screenHome = document.getElementById('screen-home');
+        const screenGame = document.getElementById('screen-game');
+        const scoreDisplay = document.getElementById('score-display');
+        const questionDisplay = document.getElementById('question-display');
+        const answersGrid = document.getElementById('answers-grid');
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const mascot = document.getElementById('mascot');
+        const instruction = document.getElementById('instruction');
+
+        // Personnages aléatoires
+        const mascots = ['👽', '👾', '🤖', '🐶', '🦊', '🦉'];
+
+        // --- NAVIGATION ---
+        function startGame(mode) {
+            state.mode = mode;
+            state.score = 0;
+            updateScoreDisplay();
+            
+            // Textes spécifiques selon le mode
+            if(mode === 'complement') instruction.innerText = "Trouve ce qu'il manque pour faire 10 !";
+            if(mode === 'addition') instruction.innerText = "Calcule cette addition !";
+            if(mode === 'subtraction') instruction.innerText = "Calcule cette soustraction !";
+
+            screenHome.classList.add('hidden');
+            screenGame.classList.remove('hidden');
+            screenGame.classList.add('animate-pop');
+            
+            nextQuestion();
+        }
+
+        function showHome() {
+            screenGame.classList.add('hidden');
+            screenHome.classList.remove('hidden');
+            screenHome.classList.add('animate-pop');
+        }
+
+        // --- LOGIQUE DE GENERATION DE QUESTIONS ---
+        function nextQuestion() {
+            state.isAnswering = false;
+            feedbackOverlay.classList.add('hidden');
+            mascot.innerText = mascots[Math.floor(Math.random() * mascots.length)];
+            
+            let questionText = "";
+            let correctAnswer = 0;
+
+            try {
+                switch (state.mode) {
+                    case 'complement':
+                        // Complément à 10 ou 100 (pour CE1)
+                        const useTens = Math.random() > 0.5; // 50% de chance d'avoir des dizaines
+                        if (useTens) {
+                            const a = Math.floor(Math.random() * 9 + 1) * 10; // 10, 20... 90
+                            correctAnswer = 100 - a;
+                            questionText = `${a} + ? = 100`;
+                            instruction.innerText = "Trouve ce qu'il manque pour faire 100 !";
+                        } else {
+                            const a = Math.floor(Math.random() * 11); // 0 à 10
+                            correctAnswer = 10 - a;
+                            questionText = `${a} + ? = 10`;
+                            instruction.innerText = "Trouve ce qu'il manque pour faire 10 !";
+                        }
+                        break;
+
+                    case 'addition':
+                        // Somme max 100
+                        const add1 = Math.floor(Math.random() * 50) + 1;
+                        const add2 = Math.floor(Math.random() * (100 - add1)) + 1;
+                        correctAnswer = add1 + add2;
+                        questionText = `${add1} + ${add2} = ?`;
+                        break;
+
+                    case 'subtraction':
+                        // Résultat positif, max 100
+                        const sub1 = Math.floor(Math.random() * 80) + 20; // 20 à 100
+                        const sub2 = Math.floor(Math.random() * sub1); // Plus petit que sub1
+                        correctAnswer = sub1 - sub2;
+                        questionText = `${sub1} - ${sub2} = ?`;
+                        break;
+                }
+
+                state.currentCorrectAnswer = correctAnswer;
+                questionDisplay.innerText = questionText;
+                
+                generateAnswerButtons(correctAnswer);
+
+            } catch (error) {
+                console.error("Erreur lors de la génération de la question :", error);
+                // Sécurité : forcer une question simple en cas de bug
+                state.currentCorrectAnswer = 10;
+                questionDisplay.innerText = "5 + 5 = ?";
+                generateAnswerButtons(10);
+            }
+        }
+
+        function generateAnswerButtons(correct) {
+            let answers = new Set();
+            answers.add(correct);
+
+            // Générer 3 mauvaises réponses proches
+            while(answers.size < 4) {
+                // Variations: +/- 1, +/- 10, ou un chiffre aléatoire proche
+                let diff = Math.floor(Math.random() * 15) - 7; 
+                if (diff === 0) diff = 10; // éviter d'ajouter 0
+                
+                let wrong = correct + diff;
+                
+                // Eviter les nombres négatifs pour des CE1
+                if (wrong < 0) wrong = Math.abs(wrong) + 5; 
+                
+                answers.add(wrong);
+            }
+
+            // Convertir Set en Array et mélanger
+            const shuffledAnswers = Array.from(answers).sort(() => Math.random() - 0.5);
+
+            // Créer le HTML des boutons
+            answersGrid.innerHTML = '';
+            const colors = [
+                'bg-emerald-400 shadow-[0_6px_0_#059669] hover:bg-emerald-300', 
+                'bg-orange-400 shadow-[0_6px_0_#ea580c] hover:bg-orange-300', 
+                'bg-cyan-400 shadow-[0_6px_0_#0891b2] hover:bg-cyan-300', 
+                'bg-pink-400 shadow-[0_6px_0_#db2777] hover:bg-pink-300'
+            ];
+            
+            shuffledAnswers.forEach((ans, index) => {
+                const btn = document.createElement('button');
+                btn.className = `${colors[index]} text-white text-4xl font-black rounded-3xl py-6 md:py-8 active:translate-y-[6px] active:shadow-none transition-all flex items-center justify-center`;
+                btn.innerText = ans;
+                btn.onclick = () => checkAnswer(ans, btn);
+                answersGrid.appendChild(btn);
+            });
+        }
+
+        // --- GESTION DES REPONSES ---
+        function checkAnswer(selected, buttonElement) {
+            if (state.isAnswering) return; // Empêcher le multi-clic
+            state.isAnswering = true;
+
+            const isCorrect = (selected === state.currentCorrectAnswer);
+            
+            feedbackOverlay.classList.remove('hidden');
+            feedbackOverlay.classList.remove('animate-pop');
+            // Forcer le reflow pour relancer l'animation
+            void feedbackOverlay.offsetWidth;
+            feedbackOverlay.classList.add('animate-pop');
+
+            if (isCorrect) {
+                // Succès
+                state.score += 10;
+                updateScoreDisplay();
+                feedbackMessage.innerHTML = "🎉 BRAVO ! 🎉";
+                feedbackMessage.className = "text-5xl md:text-7xl font-black text-alien-green drop-shadow-md";
+                createConfetti(buttonElement);
+                
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1500);
+            } else {
+                // Erreur
+                feedbackMessage.innerHTML = "OUPS !<br><span class='text-2xl mt-4 block text-gray-600'>Essaie encore ! 🤔</span>";
+                feedbackMessage.className = "text-5xl md:text-6xl text-center font-black text-rose-500 drop-shadow-md";
+                screenGame.classList.add('animate-shake');
+                
+                setTimeout(() => {
+                    screenGame.classList.remove('animate-shake');
+                    feedbackOverlay.classList.add('hidden');
+                    state.isAnswering = false;
+                }, 1500);
+            }
+        }
+
+        function updateScoreDisplay() {
+            scoreDisplay.innerText = state.score;
+            // Animation du score
+            scoreDisplay.classList.remove('animate-pop');
+            void scoreDisplay.offsetWidth;
+            scoreDisplay.classList.add('animate-pop');
+        }
+
+        // --- EFFETS VISUELS ---
+        function createConfetti(targetElement) {
+            const colors = ['#fde047', '#4ade80', '#60a5fa', '#f472b6', '#c084fc'];
+            const rect = targetElement.getBoundingClientRect();
+            
+            for (let i = 0; i < 20; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                // Position initiale au centre du bouton cliqué
+                const startX = rect.left + (rect.width / 2);
+                const startY = rect.top + (rect.height / 2);
+                
+                confetti.style.left = startX + 'px';
+                confetti.style.top = startY + 'px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Dispersion aléatoire
+                const tx = (Math.random() - 0.5) * 200;
+                const ty = (Math.random() - 1) * 200;
+                confetti.style.setProperty('--tx', `${tx}px`);
+                confetti.style.setProperty('--ty', `${ty}px`);
+                
+                document.body.appendChild(confetti);
+                
+                // Nettoyage après l'animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 1500);
+            }
+        }
+
+    </script>
+</body>
+</html>
