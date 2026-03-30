@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Conjugaison : Aller et Faire</title>
+    
+    <!-- Google Fonts pour un style cartoon/enfantin -->
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuration Tailwind pour ajouter notre police -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'cartoon': ['"Baloo 2"', 'cursive'],
+                    },
+                    animation: {
+                        'bounce-slight': 'bounce-slight 2s infinite',
+                        'wiggle': 'wiggle 1s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        'bounce-slight': {
+                            '0%, 100%': { transform: 'translateY(-5%)' },
+                            '50%': { transform: 'translateY(0)' },
+                        },
+                        'wiggle': {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Baloo 2', cursive;
+            background-color: #87CEEB; /* Bleu ciel */
+            background-image: radial-gradient(#ffffff 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+        
+        /* Style cartoon pour les conteneurs */
+        .cartoon-card {
+            background-color: white;
+            border-radius: 1.5rem;
+            border: 4px solid #374151;
+            box-shadow: 8px 8px 0px #374151;
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Boutons interactifs */
+        .cartoon-button {
+            border: 3px solid #374151;
+            box-shadow: 4px 4px 0px #374151;
+            transition: all 0.1s;
+        }
+        .cartoon-button:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px #374151;
+        }
+
+        /* Input pour les textes à trous */
+        .cartoon-input {
+            border: 3px dashed #60A5FA;
+            background-color: #EFF6FF;
+            text-align: center;
+            font-weight: bold;
+            color: #1D4ED8;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .cartoon-input:focus {
+            border-style: solid;
+            border-color: #F59E0B;
+            background-color: #FFFDE7;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 flex flex-col items-center justify-center text-gray-800">
+
+    <!-- Header / Mascotte -->
+    <header class="text-center mb-6">
+        <h1 class="text-4xl md:text-6xl font-extrabold text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] tracking-wide animate-bounce-slight">
+            🌟 Super Conjugaison 🌟
+        </h1>
+        <p class="text-xl md:text-2xl font-bold text-yellow-300 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] mt-2">
+            Mission CE1 : Les verbes ALLER et FAIRE
+        </p>
+    </header>
+
+    <!-- Écran 1 : Rappel de cours -->
+    <div id="screen-lesson" class="cartoon-card max-w-4xl w-full p-6 md:p-10 mx-auto">
+        <div class="flex items-center gap-4 mb-6">
+            <span class="text-4xl">🦉</span>
+            <h2 class="text-3xl font-bold text-blue-600">Le coin de Maître Hibou</h2>
+        </div>
+        
+        <p class="text-xl mb-6 font-semibold">Avant de jouer, révisons la conjugaison de nos deux verbes au <span class="text-pink-500 underline decoration-wavy">présent</span> :</p>
+
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <!-- Tableau Aller -->
+            <div class="bg-blue-50 border-4 border-blue-400 rounded-2xl p-4 transform rotate-1">
+                <h3 class="text-2xl font-bold text-center text-blue-700 mb-4 bg-white rounded-xl border-2 border-blue-200 py-1">🚀 Verbe ALLER</h3>
+                <ul class="text-lg md:text-xl space-y-2 font-semibold">
+                    <li>Je <span class="text-blue-600 font-extrabold">vais</span></li>
+                    <li>Tu <span class="text-blue-600 font-extrabold">vas</span></li>
+                    <li>Il / Elle / On <span class="text-blue-600 font-extrabold">va</span></li>
+                    <li>Nous <span class="text-blue-600 font-extrabold">allons</span></li>
+                    <li>Vous <span class="text-blue-600 font-extrabold">allez</span></li>
+                    <li>Ils / Elles <span class="text-blue-600 font-extrabold">vont</span></li>
+                </ul>
+            </div>
+
+            <!-- Tableau Faire -->
+            <div class="bg-pink-50 border-4 border-pink-400 rounded-2xl p-4 transform -rotate-1">
+                <h3 class="text-2xl font-bold text-center text-pink-700 mb-4 bg-white rounded-xl border-2 border-pink-200 py-1">🛠️ Verbe FAIRE</h3>
+                <ul class="text-lg md:text-xl space-y-2 font-semibold">
+                    <li>Je <span class="text-pink-600 font-extrabold">fais</span></li>
+                    <li>Tu <span class="text-pink-600 font-extrabold">fais</span></li>
+                    <li>Il / Elle / On <span class="text-pink-600 font-extrabold">fait</span></li>
+                    <li>Nous <span class="text-pink-600 font-extrabold">faisons</span></li>
+                    <li>Vous <span class="text-pink-600 font-extrabold">faites</span></li>
+                    <li>Ils / Elles <span class="text-pink-600 font-extrabold">font</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <button onclick="startLevel1()" class="cartoon-button w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold text-2xl py-4 rounded-2xl flex items-center justify-center gap-3">
+            <span>Jouer maintenant !</span>
+            <span class="text-3xl animate-wiggle">🎮</span>
+        </button>
+    </div>
+
+    <!-- Écran 2 : QCM -->
+    <div id="screen-qcm" class="cartoon-card max-w-2xl w-full p-6 md:p-10 mx-auto hidden">
+        <div class="flex justify-between items-center mb-6">
+            <span class="bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl border-2 border-indigo-300">Niveau 1 : Choisis la bonne réponse</span>
+            <span id="qcm-progress" class="font-bold text-xl text-gray-600">1/6</span>
+        </div>
+        
+        <div class="text-center mb-8">
+            <p id="qcm-question" class="text-2xl md:text-4xl font-bold leading-relaxed mb-8">
+                Tu <span class="inline-block w-24 h-10 border-b-4 border-dashed border-gray-400"></span> à la plage.
+            </p>
+            
+            <div id="qcm-options" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Options générées en JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Écran 3 : Textes à trous -->
+    <div id="screen-trous" class="cartoon-card max-w-2xl w-full p-6 md:p-10 mx-auto hidden">
+        <div class="flex justify-between items-center mb-6">
+            <span class="bg-green-100 text-green-700 font-bold px-4 py-2 rounded-xl border-2 border-green-300">Niveau 2 : Écris le verbe</span>
+            <span id="trous-progress" class="font-bold text-xl text-gray-600">1/6</span>
+        </div>
+        
+        <div class="text-center mb-8">
+            <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
+                <p class="text-lg font-semibold text-yellow-800">💡 Conseil : Écris le verbe correctement attaché avec ses lettres muettes !</p>
+            </div>
+            
+            <form id="form-trous" class="text-2xl md:text-3xl font-bold leading-loose" onsubmit="handleTrousSubmit(event)">
+                <span id="trous-start"></span>
+                <input type="text" id="trous-input" class="cartoon-input w-32 md:w-40 h-12 md:h-14 rounded-xl mx-2" autocomplete="off" required>
+                <span id="trous-end"></span>
+                
+                <div class="mt-8">
+                    <button type="submit" class="cartoon-button bg-green-400 hover:bg-green-300 text-gray-900 font-bold text-xl px-8 py-3 rounded-xl inline-flex items-center gap-2">
+                        Valider <span class="text-2xl">✅</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Écran 4 : Fin du jeu -->
+    <div id="screen-end" class="cartoon-card max-w-2xl w-full p-6 md:p-10 mx-auto hidden text-center">
+        <div class="text-6xl mb-4 animate-bounce">🏆</div>
+        <h2 class="text-4xl font-bold text-indigo-600 mb-4">Mission accomplie !</h2>
+        <p class="text-2xl font-semibold mb-8">Tu es un champion de la conjugaison !</p>
+        
+        <div class="bg-gray-100 rounded-2xl p-6 mb-8 border-4 border-dashed border-gray-300">
+            <p class="text-xl">Score final : <span id="final-score" class="text-3xl font-black text-green-500">12/12</span></p>
+            <div id="stars-container" class="text-4xl mt-4 flex justify-center gap-2">
+                <!-- Etoiles -->
+            </div>
+        </div>
+
+        <button onclick="restartGame()" class="cartoon-button bg-blue-400 hover:bg-blue-300 text-gray-900 font-bold text-xl px-8 py-4 rounded-xl w-full">
+            Rejouer 🔄
+        </button>
+    </div>
+
+    <!-- Modal de Feedback (Bravo / Erreur) -->
+    <div id="feedback-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4">
+        <div id="feedback-content" class="cartoon-card w-full max-w-md p-8 text-center transform scale-90 transition-transform duration-300">
+            <div id="feedback-icon" class="text-6xl mb-4"></div>
+            <h3 id="feedback-title" class="text-3xl font-bold mb-2"></h3>
+            <p id="feedback-message" class="text-xl font-semibold text-gray-600 mb-6"></p>
+            <button onclick="nextStep()" class="cartoon-button bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xl px-8 py-3 rounded-xl w-full">
+                Continuer ➡️
+            </button>
+        </div>
+    </div>
+
+    <!-- LOGIQUE JAVASCRIPT -->
+    <script>
+        // --- DONNÉES DU JEU ---
+        // Niveau 1 : QCM (Vise certains pronoms)
+        const qcmData = [
+            { question: "Tu ___ à la plage.", options: ["vas", "va", "vais"], answer: "vas", verb: "aller" },
+            { question: "Nous ___ un gâteau.", options: ["faisons", "faissons", "font"], answer: "faisons", verb: "faire" },
+            { question: "Ils ___ au parc.", options: ["vont", "allez", "allons"], answer: "vont", verb: "aller" },
+            { question: "Je ___ mes devoirs.", options: ["fait", "faire", "fais"], answer: "fais", verb: "faire" },
+            { question: "Vous ___ au cinéma.", options: ["allez", "allons", "vont"], answer: "allez", verb: "aller" },
+            { question: "Elle ___ du vélo.", options: ["fait", "fais", "faisez"], answer: "fait", verb: "faire" }
+        ];
+
+        // Niveau 2 : Textes à trous (Vise les pronoms restants pour équilibrer)
+        const trousData = [
+            { start: "Je", end: "chez mon ami.", answer: "vais", verb: "aller" },
+            { start: "Vous", end: "beaucoup de bruit !", answer: "faites", verb: "faire" },
+            { start: "Nous", end: "manger une glace.", answer: "allons", verb: "aller" },
+            { start: "Elles", end: "la course dans la cour.", answer: "font", verb: "faire" },
+            { start: "On", end: "à l'école à pied.", answer: "va", verb: "aller" },
+            { start: "Tu", end: "de la peinture avec tes doigts.", answer: "fais", verb: "faire" }
+        ];
+
+        // --- VARIABLES D'ÉTAT ---
+        let currentLevel = 0; // 1 = QCM, 2 = Trous
+        let currentQuestionIndex = 0;
+        let score = 0;
+        const totalQuestions = qcmData.length + trousData.length;
+
+        // --- NAVIGATION ENTRE ÉCRANS ---
+        function hideAllScreens() {
+            document.getElementById('screen-lesson').classList.add('hidden');
+            document.getElementById('screen-qcm').classList.add('hidden');
+            document.getElementById('screen-trous').classList.add('hidden');
+            document.getElementById('screen-end').classList.add('hidden');
+        }
+
+        function startLevel1() {
+            hideAllScreens();
+            currentLevel = 1;
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('screen-qcm').classList.remove('hidden');
+            renderQCM();
+        }
+
+        function startLevel2() {
+            hideAllScreens();
+            currentLevel = 2;
+            currentQuestionIndex = 0;
+            document.getElementById('screen-trous').classList.remove('hidden');
+            renderTrous();
+        }
+
+        function showEndScreen() {
+            hideAllScreens();
+            document.getElementById('screen-end').classList.remove('hidden');
+            document.getElementById('final-score').innerText = `${score} / ${totalQuestions}`;
+            
+            // Calcul des étoiles
+            const starsContainer = document.getElementById('stars-container');
+            starsContainer.innerHTML = '';
+            let starsCount = 0;
+            if(score === totalQuestions) starsCount = 3;
+            else if(score >= totalQuestions / 2) starsCount = 2;
+            else starsCount = 1;
+
+            for(let i=0; i<3; i++) {
+                if(i < starsCount) starsContainer.innerHTML += '<span>⭐</span>';
+                else starsContainer.innerHTML += '<span class="opacity-30 grayscale">⭐</span>';
+            }
+        }
+
+        function restartGame() {
+            hideAllScreens();
+            document.getElementById('screen-lesson').classList.remove('hidden');
+        }
+
+        // --- LOGIQUE NIVEAU 1 (QCM) ---
+        function renderQCM() {
+            const data = qcmData[currentQuestionIndex];
+            document.getElementById('qcm-progress').innerText = `${currentQuestionIndex + 1} / ${qcmData.length}`;
+            
+            // Préparer la question avec un trou visuel
+            let parts = data.question.split("___");
+            document.getElementById('qcm-question').innerHTML = `${parts[0]} <span class="inline-block w-24 h-10 border-b-4 border-dashed border-gray-400 align-bottom"></span> ${parts[1]}`;
+
+            const optionsContainer = document.getElementById('qcm-options');
+            optionsContainer.innerHTML = '';
+
+            // Mélanger les options pour éviter que la bonne réponse soit toujours au même endroit
+            let shuffledOptions = [...data.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "cartoon-button bg-white hover:bg-blue-50 text-blue-800 font-bold text-2xl py-4 rounded-xl";
+                btn.innerText = opt;
+                btn.onclick = () => handleQCMAnswer(opt, data.answer);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleQCMAnswer(selected, correct) {
+            let isCorrect = (selected === correct);
+            if(isCorrect) score++;
+            
+            let message = isCorrect 
+                ? "Super ! Tu as trouvé la bonne réponse." 
+                : `Oups ! La bonne réponse était : <span class="text-red-500 font-black">${correct}</span>`;
+            
+            showFeedback(isCorrect, message);
+        }
+
+        // --- LOGIQUE NIVEAU 2 (TROUS) ---
+        function renderTrous() {
+            const data = trousData[currentQuestionIndex];
+            document.getElementById('trous-progress').innerText = `${currentQuestionIndex + 1} / ${trousData.length}`;
+            
+            document.getElementById('trous-start').innerText = data.start;
+            document.getElementById('trous-end').innerText = data.end;
+            
+            const inputField = document.getElementById('trous-input');
+            inputField.value = '';
+            // Focus automatique
+            setTimeout(() => inputField.focus(), 100);
+        }
+
+        function handleTrousSubmit(event) {
+            event.preventDefault(); // Empêche le rechargement de la page
+            
+            const inputField = document.getElementById('trous-input');
+            let userAnswer = inputField.value.trim().toLowerCase();
+            let correctAnswer = trousData[currentQuestionIndex].answer;
+
+            let isCorrect = (userAnswer === correctAnswer);
+            if(isCorrect) score++;
+
+            let message = isCorrect 
+                ? "Bravo ! C'est exactement ça." 
+                : `Dommage ! Il fallait écrire : <span class="text-red-500 font-black">${correctAnswer}</span>`;
+            
+            showFeedback(isCorrect, message);
+        }
+
+        // --- FEEDBACK COMMUN ---
+        function showFeedback(isCorrect, messageHTML) {
+            const modal = document.getElementById('feedback-modal');
+            const content = document.getElementById('feedback-content');
+            const icon = document.getElementById('feedback-icon');
+            const title = document.getElementById('feedback-title');
+            const message = document.getElementById('feedback-message');
+
+            modal.classList.remove('hidden');
+            
+            // Animation d'entrée
+            setTimeout(() => {
+                content.classList.remove('scale-90');
+                content.classList.add('scale-100');
+            }, 10);
+
+            if (isCorrect) {
+                icon.innerText = "🎉";
+                title.innerText = "Bravo !";
+                title.className = "text-4xl font-bold mb-2 text-green-500";
+            } else {
+                icon.innerText = "🤔";
+                title.innerText = "Presque !";
+                title.className = "text-4xl font-bold mb-2 text-red-500";
+            }
+
+            message.innerHTML = messageHTML;
+        }
+
+        function nextStep() {
+            // Fermer la modale
+            const modal = document.getElementById('feedback-modal');
+            const content = document.getElementById('feedback-content');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-90');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+
+            // Passer à la question suivante
+            currentQuestionIndex++;
+
+            if (currentLevel === 1) {
+                if (currentQuestionIndex < qcmData.length) {
+                    renderQCM();
+                } else {
+                    // Fin du niveau 1, passage niveau 2
+                    startLevel2();
+                }
+            } else if (currentLevel === 2) {
+                if (currentQuestionIndex < trousData.length) {
+                    renderTrous();
+                } else {
+                    // Fin du jeu
+                    showEndScreen();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
