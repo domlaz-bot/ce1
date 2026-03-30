@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Balance Magique - Mesure et Masse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Baloo 2', cursive;
+            background-color: #E0F2FE;
+            background-image: radial-gradient(#bae6fd 2px, transparent 2px);
+            background-size: 40px 40px;
+            overflow-x: hidden;
+        }
+        
+        .tab-active {
+            background-color: #FCD34D;
+            border-bottom: 4px solid #D97706;
+            color: #78350F;
+            transform: scale(1.05);
+        }
+        .tab-inactive {
+            background-color: #FEF3C7;
+            color: #B45309;
+        }
+        
+        @keyframes bounce-sm {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .hover-bounce:hover {
+            animation: bounce-sm 0.5s infinite;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake-animation {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 50;
+            animation: fall 2s ease-out forwards;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(300px) rotate(360deg); opacity: 0; }
+        }
+
+        svg text {
+            user-select: none;
+        }
+
+        .notebook-lines {
+            background-image: linear-gradient(#fcd34d 1px, transparent 1px);
+            background-size: 100% 2.5rem;
+            line-height: 2.5rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-6 px-4">
+
+    <!-- Header -->
+    <header class="text-center mb-6">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-sky-700 drop-shadow-md tracking-wide">
+            ⚖️ La Balance Magique ⚖️
+        </h1>
+        <p class="text-lg text-sky-800 font-semibold mt-2">Apprends à mesurer, comparer et déduire !</p>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="flex flex-wrap justify-center gap-2 mb-4 z-10 w-full max-w-4xl px-2">
+        <button onclick="switchMode('compare')" id="tab-compare" class="tab-active px-4 md:px-6 py-3 rounded-t-2xl font-bold text-lg md:text-xl transition-all shadow-md">
+            Jeu 1 : Comparer
+        </button>
+        <button onclick="switchMode('weigh')" id="tab-weigh" class="tab-inactive px-4 md:px-6 py-3 rounded-t-2xl font-bold text-lg md:text-xl transition-all shadow-md">
+            Jeu 2 : Peser
+        </button>
+        <button onclick="switchMode('deduce')" id="tab-deduce" class="tab-inactive px-4 md:px-6 py-3 rounded-t-2xl font-bold text-lg md:text-xl transition-all shadow-md">
+            Jeu 3 : Déduire
+        </button>
+    </div>
+
+    <!-- Main App Container -->
+    <main class="bg-white p-4 md:p-8 rounded-3xl shadow-2xl w-full max-w-4xl border-4 border-amber-300 relative min-h-[400px]">
+        
+        <!-- Result Modal -->
+        <div id="result-modal" class="fixed inset-0 bg-sky-900 bg-opacity-50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300 flex flex-col items-center text-center shadow-2xl border-8" id="modal-content">
+                <div id="modal-icon" class="text-6xl mb-4">🏆</div>
+                <h3 id="modal-title" class="text-3xl font-extrabold mb-2"></h3>
+                <p id="modal-message" class="text-xl font-semibold mb-6 text-gray-700"></p>
+                <button id="modal-btn" class="text-xl font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 text-white"></button>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <h2 id="instruction-title" class="text-2xl md:text-3xl text-center text-amber-600 font-bold mb-6">
+            Lequel est le plus lourd ?
+        </h2>
+
+        <!-- Balance Container (For Jeu 1 and Jeu 2) -->
+        <div id="balance-container-single" class="relative w-full max-w-lg mx-auto mb-8">
+            <!-- SVG injected by JS -->
+        </div>
+
+        <!-- DOUBLE Balance Container (For Jeu 3) -->
+        <div id="balance-container-double" class="hidden flex flex-col md:flex-row w-full gap-6 md:gap-4 mb-8 justify-center items-center">
+            <div id="balance-d1" class="w-full max-w-sm"></div>
+            <div id="balance-d2" class="w-full max-w-sm"></div>
+        </div>
+
+        <!-- Interface: Mode 1 (Compare) -->
+        <div id="ui-compare" class="flex flex-col items-center">
+            <div class="flex flex-wrap justify-center gap-4 mb-4">
+                <button onclick="checkCompare('left')" id="btn-comp-left" class="bg-blue-400 hover:bg-blue-500 text-white text-xl font-bold py-3 px-6 rounded-2xl shadow-md transform transition hover:-translate-y-1 active:scale-95 flex items-center gap-2">
+                    <span id="btn-comp-left-icon">🍎</span> <span id="btn-comp-left-text">C'est le plus lourd !</span>
+                </button>
+                <button onclick="checkCompare('right')" id="btn-comp-right" class="bg-blue-400 hover:bg-blue-500 text-white text-xl font-bold py-3 px-6 rounded-2xl shadow-md transform transition hover:-translate-y-1 active:scale-95 flex items-center gap-2">
+                    <span id="btn-comp-right-icon">📚</span> <span id="btn-comp-right-text">C'est le plus lourd !</span>
+                </button>
+            </div>
+            <button onclick="generateCompareLevel()" id="btn-next-compare" class="hidden mt-4 bg-green-500 hover:bg-green-600 text-white text-xl font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
+                Jeu suivant ➔
+            </button>
+        </div>
+
+        <!-- Interface: Mode 2 (Weigh) -->
+        <div id="ui-weigh" class="hidden flex flex-col items-center w-full">
+            <div class="bg-amber-100 p-4 rounded-xl border-2 border-amber-300 w-full mb-4 flex flex-col items-center">
+                <p class="text-lg text-amber-900 font-bold mb-3">Clique sur les poids pour les ajouter au plateau droit :</p>
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button onclick="addWeight(10)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg shadow border-b-4 border-gray-400 active:translate-y-1 active:border-b-0 transition-all">10 g</button>
+                    <button onclick="addWeight(50)" class="bg-stone-300 hover:bg-stone-400 text-stone-800 font-bold py-2 px-4 rounded-lg shadow border-b-4 border-stone-400 active:translate-y-1 active:border-b-0 transition-all">50 g</button>
+                    <button onclick="addWeight(100)" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-2 px-4 rounded-lg shadow border-b-4 border-yellow-600 active:translate-y-1 active:border-b-0 transition-all">100 g</button>
+                    <button onclick="addWeight(200)" class="bg-yellow-500 hover:bg-yellow-600 text-yellow-900 font-bold py-2 px-4 rounded-lg shadow border-b-4 border-yellow-700 active:translate-y-1 active:border-b-0 transition-all">200 g</button>
+                    <button onclick="addWeight(500)" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg shadow border-b-4 border-orange-700 active:translate-y-1 active:border-b-0 transition-all">500 g</button>
+                    <button onclick="addWeight(1000)" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow border-b-4 border-red-700 active:translate-y-1 active:border-b-0 transition-all">1 kg (1000g)</button>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="resetWeights()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-6 rounded-full shadow transition-all flex items-center gap-2">
+                    ↺ Vider la balance
+                </button>
+                <button onclick="checkWeigh()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transform transition hover:scale-105 hidden" id="btn-validate-weigh">
+                    Valider
+                </button>
+            </div>
+
+            <button onclick="generateWeighLevel()" id="btn-next-weigh" class="hidden mt-6 bg-green-500 hover:bg-green-600 text-white text-xl font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
+                Pesée suivante ➔
+            </button>
+        </div>
+
+        <!-- Interface: Mode 3 (Deduce - LOGIQUE VISUELLE) -->
+        <div id="ui-deduce" class="hidden flex flex-col items-center w-full">
+            <p class="text-lg font-bold text-gray-600 mb-4 text-center">Observe bien les deux balances et clique sur la bonne réponse :</p>
+            <div class="flex flex-wrap justify-center gap-4 mb-4" id="deduce-buttons">
+                <!-- Boutons générés par JS -->
+            </div>
+            
+            <button onclick="generateDeduceLevel()" id="btn-next-deduce" class="hidden mt-6 bg-green-500 hover:bg-green-600 text-white text-xl font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
+                Énigme suivante ➔
+            </button>
+        </div>
+    </main>
+
+    <script>
+        // --- DATA (Enrichi avec les genres et pluriels pour le français) ---
+        const catalog = [
+            { id: 'feather', name: 'La plume', raw: 'plume', plural: 'plumes', gender: 'F', emoji: '🪶', mass: 10 },
+            { id: 'pencil', name: 'Le crayon', raw: 'crayon', plural: 'crayons', gender: 'M', emoji: '✏️', mass: 20 },
+            { id: 'strawberry', name: 'La fraise', raw: 'fraise', plural: 'fraises', gender: 'F', emoji: '🍓', mass: 50 },
+            { id: 'orange', name: 'L\'orange', raw: 'orange', plural: 'oranges', gender: 'F', emoji: '🍊', mass: 100 },
+            { id: 'apple', name: 'La pomme', raw: 'pomme', plural: 'pommes', gender: 'F', emoji: '🍎', mass: 150 },
+            { id: 'banana', name: 'La banane', raw: 'banane', plural: 'bananes', gender: 'F', emoji: '🍌', mass: 200 },
+            { id: 'car', name: 'La voiture', raw: 'voiture', plural: 'voitures', gender: 'F', emoji: '🚗', mass: 250 },
+            { id: 'bear', name: 'Le nounours', raw: 'nounours', plural: 'nounours', gender: 'M', emoji: '🧸', mass: 350 },
+            { id: 'ball', name: 'Le ballon', raw: 'ballon', plural: 'ballons', gender: 'M', emoji: '⚽', mass: 400 },
+            { id: 'book', name: 'Le livre', raw: 'livre', plural: 'livres', gender: 'M', emoji: '📚', mass: 500 },
+            { id: 'shoe', name: 'La chaussure', raw: 'chaussure', plural: 'chaussures', gender: 'F', emoji: '👟', mass: 600 },
+            { id: 'pineapple', name: 'L\'ananas', raw: 'ananas', plural: 'ananas', gender: 'M', emoji: '🍍', mass: 1000 },
+            { id: 'laptop', name: 'L\'ordinateur', raw: 'ordinateur', plural: 'ordinateurs', gender: 'M', emoji: '💻', mass: 2000 },
+            { id: 'watermelon', name: 'La pastèque', raw: 'pastèque', plural: 'pastèques', gender: 'F', emoji: '🍉', mass: 2500 },
+            { id: 'cat', name: 'Le chat', raw: 'chat', plural: 'chats', gender: 'M', emoji: '🐱', mass: 3000 },
+            { id: 'backpack', name: 'Le cartable', raw: 'cartable', plural: 'cartables', gender: 'M', emoji: '🎒', mass: 4000 }
+        ];
+
+        // --- STATE ---
+        let currentMode = 'compare';
+        let state = {
+            leftMass: 0, rightMass: 0,
+            leftItems: [], rightItems: [],
+            targetObj: null,
+            compareGoal: 'heavier', 
+            deduceGoal: 'heavier',
+            deduceItems: [], 
+            isResolved: false
+        };
+
+        // --- SVG TEMPLATE GENERATOR ---
+        function getBalanceSVG(prefix) {
+            return `
+            <svg viewBox="0 0 400 320" class="w-full h-auto drop-shadow-xl" id="${prefix}scale-svg">
+                <rect x="120" y="270" width="160" height="30" rx="15" fill="#8B4513" stroke="#5C2E0B" stroke-width="4"/>
+                <rect x="140" y="250" width="120" height="20" fill="#A0522D" />
+                <rect x="190" y="120" width="20" height="130" fill="#A0522D" stroke="#5C2E0B" stroke-width="2"/>
+                <polygon id="${prefix}needle" points="200,80 195,120 205,120" fill="#DC2626" style="transform-origin: 200px 120px; transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);"/>
+                <circle cx="200" cy="120" r="10" fill="#FBBF24" stroke="#D97706" stroke-width="3"/>
+                <g id="${prefix}beam" style="transform-origin: 200px 120px; transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                    <rect x="40" y="112" width="320" height="16" rx="8" fill="#D97706" stroke="#92400E" stroke-width="2"/>
+                    <circle cx="50" cy="120" r="6" fill="#8B4513" />
+                    <circle cx="350" cy="120" r="6" fill="#8B4513" />
+                </g>
+                <g id="${prefix}pan-left" style="transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                    <line x1="50" y1="120" x2="10" y2="220" stroke="#9CA3AF" stroke-width="3" />
+                    <line x1="50" y1="120" x2="90" y2="220" stroke="#9CA3AF" stroke-width="3" />
+                    <line x1="50" y1="120" x2="50" y2="220" stroke="#9CA3AF" stroke-width="3" />
+                    <path d="M 0 220 Q 50 250 100 220 Z" fill="#94A3B8" stroke="#475569" stroke-width="2"/>
+                    <g id="${prefix}left-objects" transform="translate(50, 210)"></g>
+                </g>
+                <g id="${prefix}pan-right" style="transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                    <line x1="350" y1="120" x2="310" y2="220" stroke="#9CA3AF" stroke-width="3" />
+                    <line x1="350" y1="120" x2="390" y2="220" stroke="#9CA3AF" stroke-width="3" />
+                    <line x1="350" y1="120" x2="350" y2="220" stroke="#9CA3AF" stroke-width="3" />
+                    <path d="M 300 220 Q 350 250 400 220 Z" fill="#94A3B8" stroke="#475569" stroke-width="2"/>
+                    <g id="${prefix}right-objects" transform="translate(350, 210)"></g>
+                </g>
+            </svg>`;
+        }
+
+        // --- CORE FUNCTIONS ---
+        function init() {
+            document.getElementById('balance-container-single').innerHTML = getBalanceSVG('main-');
+            document.getElementById('balance-d1').innerHTML = getBalanceSVG('d1-');
+            document.getElementById('balance-d2').innerHTML = getBalanceSVG('d2-');
+            switchMode('compare');
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            state.isResolved = false;
+            hideFeedback();
+            
+            document.getElementById('tab-compare').className = mode === 'compare' ? 'tab-active px-4 md:px-6 py-3 rounded-t-2xl font-bold text-lg md:text-xl transition-all shadow-md' : 'tab-inactive px-4 md:px-6 py-3 rounded-t-2xl font-bold text-lg md:text-xl transition-all shadow-md cursor-pointer hover:bg-amber-200';
+            document.getElementById('tab-weigh').className = mode === 'weigh' ? 'tab-active px-4 md:px-6 py-3 rounded-t-2xl font-bold text-lg md:text-xl transition-all shadow-md' : 'tab-inactive px-4 md:px-6 py-3 rounded-t-2xl font-bold text-lg md:text-xl transition-all shadow-md cursor-pointer hover:bg-amber-200';
+            document.getElementById('tab-deduce').className = mode === 'deduce' ? 'tab-active px-4 md:px-6 py-3 rounded-t-2xl font-bold text-lg md:text-xl transition-all shadow-md' : 'tab-inactive px-4 md:px-6 py-3 rounded-t-2xl font-bold text-lg md:text-xl transition-all shadow-md cursor-pointer hover:bg-amber-200';
+            
+            document.getElementById('ui-compare').classList.toggle('hidden', mode !== 'compare');
+            document.getElementById('ui-weigh').classList.toggle('hidden', mode !== 'weigh');
+            document.getElementById('ui-deduce').classList.toggle('hidden', mode !== 'deduce');
+
+            // Hide the physical balance during logic deduction game, show double balance
+            document.getElementById('balance-container-single').classList.toggle('hidden', mode === 'deduce');
+            document.getElementById('balance-container-double').classList.toggle('hidden', mode !== 'deduce');
+
+            if (mode === 'compare') {
+                generateCompareLevel();
+            } else if (mode === 'weigh') {
+                document.getElementById('instruction-title').innerText = "Ajoute des poids pour équilibrer !";
+                generateWeighLevel();
+            } else if (mode === 'deduce') {
+                generateDeduceLevel();
+            }
+        }
+
+        function updateScaleCustom(prefix, leftMass, rightMass, leftItems, rightItems, isWeighMode = false) {
+            const diff = leftMass - rightMass;
+            const total = Math.max(leftMass, rightMass, 1);
+            
+            let angle = (diff / total) * 35;
+            if (angle > 22) angle = 22;
+            if (angle < -22) angle = -22;
+
+            if (isWeighMode && diff !== 0 && Math.abs(angle) < 3) {
+                angle = diff > 0 ? 5 : -5;
+            }
+
+            const beam = document.getElementById(`${prefix}beam`);
+            const needle = document.getElementById(`${prefix}needle`);
+            const panLeft = document.getElementById(`${prefix}pan-left`);
+            const panRight = document.getElementById(`${prefix}pan-right`);
+
+            if (!beam || !needle || !panLeft || !panRight) return;
+
+            beam.style.transform = `rotate(${-angle}deg)`; 
+            needle.style.transform = `rotate(${-angle}deg)`;
+
+            const theta = (-angle) * Math.PI / 180;
+            const hx_left = 200 - 150 * Math.cos(theta);
+            const hy_left = 120 - 150 * Math.sin(theta);
+            const tx_left = hx_left - 50;
+            const ty_left = hy_left - 120;
+            
+            const hx_right = 200 + 150 * Math.cos(theta);
+            const hy_right = 120 + 150 * Math.sin(theta);
+            const tx_right = hx_right - 350;
+            const ty_right = hy_right - 120;
+
+            panLeft.style.transform = `translate(${tx_left}px, ${ty_left}px)`;
+            panRight.style.transform = `translate(${tx_right}px, ${ty_right}px)`;
+
+            renderPanCustom(`${prefix}left-objects`, leftItems);
+            renderPanCustom(`${prefix}right-objects`, rightItems);
+        }
+
+        function updateMainScale() {
+            updateScaleCustom('main-', state.leftMass, state.rightMass, state.leftItems, state.rightItems, currentMode === 'weigh');
+        }
+
+        function renderPanCustom(panId, items) {
+            const container = document.getElementById(panId);
+            if (!container) return;
+            container.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                
+                if (item.type === 'weight') {
+                    const col = index % 3;
+                    const row = Math.floor(index / 3);
+                    g.setAttribute('transform', `translate(${-30 + (col * 30)}, ${-10 - (row * 35)})`);
+
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', -12); rect.setAttribute('y', -25);
+                    rect.setAttribute('width', 24); rect.setAttribute('height', 25);
+                    rect.setAttribute('rx', 3);
+                    
+                    let fill = '#9CA3AF';
+                    if(item.mass >= 100) fill = '#EAB308';
+                    if(item.mass >= 500) fill = '#F97316';
+                    if(item.mass >= 1000) fill = '#EF4444';
+                    
+                    rect.setAttribute('fill', fill);
+                    rect.setAttribute('stroke', '#4B5563'); rect.setAttribute('stroke-width', '1');
+                    
+                    const neck = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    neck.setAttribute('x', -6); neck.setAttribute('y', -30);
+                    neck.setAttribute('width', 12); neck.setAttribute('height', 5);
+                    neck.setAttribute('fill', fill); neck.setAttribute('stroke', '#4B5563');
+                    neck.setAttribute('stroke-width', '1');
+
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', 0); text.setAttribute('y', -8);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-size', item.mass >= 1000 ? '9' : '10');
+                    text.setAttribute('font-weight', 'bold'); text.setAttribute('fill', 'white');
+                    text.textContent = item.mass >= 1000 ? '1kg' : `${item.mass}`;
+
+                    g.appendChild(neck); g.appendChild(rect); g.appendChild(text);
+                } else {
+                    g.setAttribute('transform', `translate(0, ${-20 - (index * 40)})`);
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', 0); text.setAttribute('y', 0);
+                    text.setAttribute('text-anchor', 'middle'); text.setAttribute('dominant-baseline', 'central');
+                    
+                    let size = item.mass > 500 ? 55 : (item.mass < 100 ? 30 : 40);
+                    text.setAttribute('font-size', size);
+                    text.textContent = item.emoji;
+                    g.appendChild(text);
+                }
+                container.appendChild(g);
+            });
+        }
+
+        // --- MODE 1: COMPARE ---
+        function generateCompareLevel() {
+            state.isResolved = false;
+            hideFeedback();
+            document.getElementById('btn-next-compare').classList.add('hidden');
+            
+            state.compareGoal = Math.random() < 0.5 ? 'heavier' : 'lighter';
+            
+            const btnText = state.compareGoal === 'heavier' ? "C'est le plus lourd !" : "C'est le plus léger !";
+            document.getElementById('instruction-title').innerText = state.compareGoal === 'heavier' ? "Lequel est le plus lourd ?" : "Lequel est le plus léger ?";
+            document.getElementById('btn-comp-left-text').innerText = btnText;
+            document.getElementById('btn-comp-right-text').innerText = btnText;
+
+            let obj1 = catalog[Math.floor(Math.random() * catalog.length)];
+            let obj2;
+            do {
+                obj2 = catalog[Math.floor(Math.random() * catalog.length)];
+            } while (obj1.id === obj2.id || obj1.mass === obj2.mass);
+
+            state.leftItems = [obj1];
+            state.rightItems = [obj2];
+            state.leftMass = obj1.mass;
+            state.rightMass = obj2.mass;
+
+            document.getElementById('btn-comp-left-icon').innerText = obj1.emoji;
+            document.getElementById('btn-comp-right-icon').innerText = obj2.emoji;
+
+            updateMainScale();
+        }
+
+        function checkCompare(choice) {
+            if (state.isResolved) return;
+            const isLeftHeavier = state.leftMass > state.rightMass;
+            let success = (state.compareGoal === 'heavier') 
+                ? ((choice === 'left' && isLeftHeavier) || (choice === 'right' && !isLeftHeavier))
+                : ((choice === 'left' && !isLeftHeavier) || (choice === 'right' && isLeftHeavier));
+
+            if (success) {
+                state.isResolved = true;
+                const winnerObj = (choice === 'left') ? state.leftItems[0] : state.rightItems[0];
+                const adj = state.compareGoal === 'heavier' ? (winnerObj.gender === 'F' ? 'lourde' : 'lourd') : (winnerObj.gender === 'F' ? 'légère' : 'léger');
+                showModal('success', 'Bravo !', `${winnerObj.name} est le plus ${adj}.`, 'Jeu suivant', generateCompareLevel);
+                document.getElementById('btn-next-compare').classList.remove('hidden');
+            } else {
+                const rule = state.compareGoal === 'heavier' ? 'Le plateau le plus bas est le plus lourd.' : 'Le plateau le plus haut est le plus léger.';
+                showModal('error', 'Oups...', `Regarde bien la balance ! ${rule}`, 'Réessayer', null);
+                const mainApp = document.querySelector('main');
+                mainApp.classList.add('shake-animation');
+                setTimeout(() => mainApp.classList.remove('shake-animation'), 400);
+            }
+        }
+
+        // --- MODE 2: WEIGH ---
+        function generateWeighLevel() {
+            state.isResolved = false;
+            hideFeedback();
+            document.getElementById('btn-next-weigh').classList.add('hidden');
+            document.getElementById('btn-validate-weigh').classList.remove('hidden');
+
+            state.targetObj = catalog[Math.floor(Math.random() * catalog.length)];
+            state.leftItems = [state.targetObj];
+            state.leftMass = state.targetObj.mass;
+            
+            resetWeights(true);
+        }
+
+        function addWeight(massValue) {
+            if (state.isResolved) return;
+            if (state.rightItems.length >= 12) {
+                showModal('error', 'Oups...', 'Il y a trop de poids ! Essaie de vider la balance pour recommencer.', 'D\'accord', null);
+                return;
+            }
+            state.rightItems.push({ type: 'weight', mass: massValue });
+            state.rightMass += massValue;
+            updateMainScale();
+            checkWeigh();
+        }
+
+        function resetWeights(doUpdateScale = true) {
+            if (state.isResolved) return;
+            state.rightItems = [];
+            state.rightMass = 0;
+            if(doUpdateScale) updateMainScale();
+        }
+
+        function checkWeigh() {
+            if (state.isResolved) return;
+
+            if (state.rightMass === state.leftMass) {
+                state.isResolved = true;
+                let massText = `${state.leftMass} grammes`;
+                if (state.leftMass === 1000) massText = `1000 grammes, c'est-à-dire 1 kilogramme !`;
+                
+                showModal('success', 'Parfait !', `La balance est à l'équilibre. ${state.targetObj.name} pèse ${massText}.`, 'Pesée suivante', generateWeighLevel);
+                document.getElementById('btn-next-weigh').classList.remove('hidden');
+                document.getElementById('btn-validate-weigh').classList.add('hidden');
+            } else if (state.rightMass > state.leftMass) {
+                showModal('error', 'Trop lourd !', 'Tu as mis trop de poids. Enlève-en un peu en vidant la balance.', 'D\'accord', null);
+            }
+        }
+
+        // --- MODE 3: DEDUCE (Logique Visuelle) ---
+        function generateDeduceLevel() {
+            state.isResolved = false;
+            hideFeedback();
+            document.getElementById('btn-next-deduce').classList.add('hidden');
+            
+            state.deduceGoal = Math.random() < 0.5 ? 'heavier' : 'lighter';
+            const questionStr = state.deduceGoal === 'heavier' ? 'Lequel de ces 3 objets est le plus lourd ?' : 'Lequel de ces 3 objets est le plus léger ?';
+            document.getElementById('instruction-title').innerText = "Déduction : " + questionStr;
+
+            // Pick 3 unique items and sort by mass descending
+            let items = [];
+            while(items.length < 3) {
+                let candidate = catalog[Math.floor(Math.random() * catalog.length)];
+                if (!items.find(i => i.id === candidate.id)) {
+                    items.push(candidate);
+                }
+            }
+            items.sort((a, b) => b.mass - a.mass);
+            state.deduceItems = items;
+            
+            const H = items[0]; // Heaviest
+            const M = items[1]; // Medium
+            const L = items[2]; // Lightest
+
+            // Setup the two balances: H vs M, and M vs L
+            // Randomize left/right placement for each balance to make it a real puzzle
+            let bal1_left, bal1_right, bal2_left, bal2_right;
+            
+            if (Math.random() < 0.5) { bal1_left = H; bal1_right = M; } else { bal1_left = M; bal1_right = H; }
+            if (Math.random() < 0.5) { bal2_left = M; bal2_right = L; } else { bal2_left = L; bal2_right = M; }
+
+            // Also randomly swap which balance shows which comparison (Balance 1 could be M vs L)
+            if (Math.random() < 0.5) {
+                updateScaleCustom('d1-', bal1_left.mass, bal1_right.mass, [bal1_left], [bal1_right], false);
+                updateScaleCustom('d2-', bal2_left.mass, bal2_right.mass, [bal2_left], [bal2_right], false);
+            } else {
+                updateScaleCustom('d1-', bal2_left.mass, bal2_right.mass, [bal2_left], [bal2_right], false);
+                updateScaleCustom('d2-', bal1_left.mass, bal1_right.mass, [bal1_left], [bal1_right], false);
+            }
+
+            // Generate Action Buttons (shuffled)
+            const btnContainer = document.getElementById('deduce-buttons');
+            btnContainer.innerHTML = '';
+            
+            let shuffledItems = [...items].sort(() => Math.random() - 0.5);
+            
+            shuffledItems.forEach(item => {
+                const adj = state.deduceGoal === 'heavier' ? (item.gender === 'F' ? 'lourde' : 'lourd') : (item.gender === 'F' ? 'légère' : 'léger');
+                const btn = document.createElement('button');
+                btn.className = "bg-purple-500 hover:bg-purple-600 text-white text-xl font-bold py-3 px-6 rounded-2xl shadow-md transform transition hover:-translate-y-1 active:scale-95 flex items-center gap-2";
+                btn.innerHTML = `<span class="text-3xl">${item.emoji}</span> <span>C'est le plus ${adj}</span>`;
+                btn.onclick = () => checkDeduce(item.id);
+                btnContainer.appendChild(btn);
+            });
+        }
+
+        function checkDeduce(choiceId) {
+            if (state.isResolved) return;
+
+            const targetItem = state.deduceGoal === 'heavier' ? state.deduceItems[0] : state.deduceItems[2];
+            const chosenItem = state.deduceItems.find(i => i.id === choiceId);
+
+            if (chosenItem.id === targetItem.id) {
+                state.isResolved = true;
+                const adj = state.deduceGoal === 'heavier' ? (chosenItem.gender === 'F' ? 'lourde' : 'lourd') : (chosenItem.gender === 'F' ? 'légère' : 'léger');
+                showModal('success', 'Excellent !', `Ta déduction est parfaite. ${chosenItem.name} est bien le plus ${adj}.`, 'Énigme suivante', generateDeduceLevel);
+                document.getElementById('btn-next-deduce').classList.remove('hidden');
+            } else {
+                showModal('error', 'Pas tout à fait...', 'Regarde bien les deux balances. Sers-toi de l\'objet présent sur les deux balances pour trouver la réponse !', 'Réessayer', null);
+                const mainApp = document.querySelector('main');
+                mainApp.classList.add('shake-animation');
+                setTimeout(() => mainApp.classList.remove('shake-animation'), 400);
+            }
+        }
+
+        // --- UTILS & FEEDBACK ---
+        function showModal(type, title, message, btnText, btnAction) {
+            const modal = document.getElementById('result-modal');
+            if (!modal) return;
+            const content = document.getElementById('modal-content');
+            const icon = document.getElementById('modal-icon');
+            const titleEl = document.getElementById('modal-title');
+            const msgEl = document.getElementById('modal-message');
+            const btn = document.getElementById('modal-btn');
+
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+            btn.innerText = btnText;
+
+            speak(title + ". " + message);
+
+            if (type === 'success') {
+                content.className = "bg-white rounded-3xl p-8 max-w-sm w-full mx-4 transform scale-100 transition-transform duration-300 flex flex-col items-center text-center shadow-2xl border-8 border-green-400";
+                icon.innerText = "🏆";
+                titleEl.className = "text-3xl font-extrabold mb-2 text-green-600";
+                btn.className = "text-xl font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 text-white bg-green-500 hover:bg-green-600";
+                throwConfetti();
+            } else {
+                content.className = "bg-white rounded-3xl p-8 max-w-sm w-full mx-4 transform scale-100 transition-transform duration-300 flex flex-col items-center text-center shadow-2xl border-8 border-red-400";
+                icon.innerText = "🤔";
+                titleEl.className = "text-3xl font-extrabold mb-2 text-red-600";
+                btn.className = "text-xl font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 text-white bg-red-500 hover:bg-red-600";
+            }
+
+            btn.onclick = () => {
+                hideModal();
+                if (btnAction) btnAction();
+            };
+
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
+        }
+
+        function hideModal() {
+            const modal = document.getElementById('result-modal');
+            if (!modal) return;
+            modal.classList.add('opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'fr-FR';
+                utterance.rate = 0.95;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function hideFeedback() {
+            hideModal();
+        }
+
+        function throwConfetti() {
+            const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'];
+            for (let i = 0; i < 40; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                document.body.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), 2500);
+            }
+        }
+
+        // Start App
+        window.onload = init;
+    </script>
+</body>
+</html>
