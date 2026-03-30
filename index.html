@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Espace CE1 🚀</title>
+    
+    <!-- Intégration de Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Police ludique pour les enfants (Fredoka) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Configuration Tailwind personnalisée -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Fredoka', 'sans-serif'],
+                    },
+                    colors: {
+                        cartoon: {
+                            blue: '#45B7D1',
+                            orange: '#FF8A65',
+                            green: '#4DB6AC',
+                            yellow: '#FFD54F',
+                            purple: '#BA68C8',
+                            red: '#E57373',
+                            dark: '#2D3748'
+                        }
+                    },
+                    boxShadow: {
+                        'cartoon': '0 8px 0 rgba(45, 55, 72, 1)',
+                        'cartoon-hover': '0 4px 0 rgba(45, 55, 72, 1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Styles personnalisés pour un effet cartoon plus prononcé */
+        body {
+            background-color: #f0f9ff;
+            background-image: 
+                radial-gradient(#bae6fd 20%, transparent 20%), 
+                radial-gradient(#bae6fd 20%, transparent 20%);
+            background-position: 0 0, 25px 25px;
+            background-size: 50px 50px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .btn-cartoon {
+            transition: all 0.15s ease-in-out;
+            border: 4px solid #2D3748;
+        }
+
+        .btn-cartoon:hover {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 rgba(45, 55, 72, 1);
+        }
+
+        .btn-cartoon:active {
+            transform: translateY(8px);
+            box-shadow: 0 0px 0 rgba(45, 55, 72, 1);
+        }
+
+        /* Animation de la mascotte */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        .mascot-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Animation d'apparition des cartes */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5); }
+            70% { transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .card-animate {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+        }
+
+        /* Flou arrière-plan pour la modale */
+        .modal-backdrop {
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center py-8 px-4 sm:px-8">
+
+    <!-- En-tête / Consignes -->
+    <header class="w-full max-w-5xl flex flex-col md:flex-row items-center justify-center gap-6 mb-12">
+        <div class="text-7xl mascot-float drop-shadow-xl select-none">🦊</div>
+        <div class="bg-white p-6 rounded-3xl shadow-cartoon border-4 border-cartoon-dark relative max-w-2xl text-center md:text-left">
+            <h1 class="text-3xl sm:text-4xl font-bold text-cartoon-dark mb-2">Bonjour ! 👋</h1>
+            <p class="text-lg sm:text-xl text-slate-600 font-medium leading-relaxed">
+                Bienvenue dans ton espace de travail. Clique sur une activité ci-dessous pour commencer à t'entraîner.
+            </p>
+            <!-- Bulle de dialogue style BD -->
+            <div class="hidden md:block absolute -left-[18px] top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-[15px] border-t-transparent border-r-[20px] border-r-cartoon-dark border-b-[15px] border-b-transparent"></div>
+            <div class="hidden md:block absolute -left-[11px] top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-[12px] border-t-transparent border-r-[16px] border-r-white border-b-[12px] border-b-transparent"></div>
+        </div>
+    </header>
+
+    <!-- Grille des Activités -->
+    <main class="w-full max-w-5xl">
+        <div id="activities-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <!-- Les cartes sont générées en JavaScript -->
+        </div>
+    </main>
+
+    <!-- Modale de Feedback -->
+    <div id="feedback-modal" class="fixed inset-0 z-50 hidden flex-col items-center justify-center modal-backdrop bg-slate-900/40 p-4 opacity-0 transition-opacity duration-300">
+        <div id="feedback-card" class="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center shadow-2xl border-4 border-cartoon-dark transform scale-90 transition-transform duration-300">
+            <div id="feedback-icon" class="text-7xl mb-4 select-none animate-bounce">✨</div>
+            <h2 id="feedback-title" class="text-4xl font-bold mb-4">Message</h2>
+            <p id="feedback-message" class="text-xl text-slate-600 mb-8 font-medium">Détails du message...</p>
+            
+            <div class="flex gap-4 justify-center">
+                <button id="feedback-btn-cancel" class="hidden py-3 px-6 rounded-2xl text-lg font-bold text-cartoon-dark bg-slate-200 btn-cartoon shadow-cartoon">
+                    Annuler
+                </button>
+                <button id="feedback-btn-action" class="flex-1 py-3 px-6 rounded-2xl text-xl font-bold text-white btn-cartoon shadow-cartoon">
+                    Action
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logique JavaScript -->
+    <script>
+        // --- 1. CONFIGURATION DES DONNÉES ---
+        const BASE_URL = "https://domlaz-bot.github.io/ce1/";
+        
+        // Liste des activités basées sur votre capture d'écran
+        const activities = [
+            { 
+                id: 1,
+                name: "Aller et Faire", 
+                icon: "✍️", 
+                file: "aller_faire.html", 
+                colorClass: "bg-cartoon-purple",
+                isReady: true 
+            },
+            { 
+                id: 2,
+                name: "Anglais : Sentiments", 
+                icon: "😊", 
+                file: "anglais_sentiments.html", 
+                colorClass: "bg-cartoon-red",
+                isReady: true 
+            },
+            { 
+                id: 3,
+                name: "Les Masses", 
+                icon: "⚖️", 
+                file: "masse.html", 
+                colorClass: "bg-cartoon-green",
+                isReady: true 
+            },
+            { 
+                id: 4,
+                name: "Mathématiques", 
+                icon: "🔢", 
+                file: "maths.html", 
+                colorClass: "bg-cartoon-blue",
+                isReady: true 
+            },
+            { 
+                id: 5,
+                name: "Soustractions", 
+                icon: "➖", 
+                file: "soustraction.html", 
+                colorClass: "bg-cartoon-orange",
+                isReady: true 
+            },
+            { 
+                id: 6,
+                name: "Jeux Mystère", 
+                icon: "❓", 
+                file: "#", 
+                colorClass: "bg-slate-300",
+                isReady: false // Permet de démontrer le feedback d'erreur
+            }
+        ];
+
+        // --- 2. ÉLÉMENTS DU DOM ---
+        const gridContainer = document.getElementById('activities-grid');
+        const modal = document.getElementById('feedback-modal');
+        const modalCard = document.getElementById('feedback-card');
+        const modalIcon = document.getElementById('feedback-icon');
+        const modalTitle = document.getElementById('feedback-title');
+        const modalMessage = document.getElementById('feedback-message');
+        const btnAction = document.getElementById('feedback-btn-action');
+        const btnCancel = document.getElementById('feedback-btn-cancel');
+
+        let targetUrl = ''; // Stocke l'URL de redirection
+
+        // --- 3. FONCTIONS ---
+
+        /**
+         * Affiche la modale avec un effet (Bravo / Erreur)
+         * @param {string} type - 'success' ou 'error'
+         * @param {string} activityName - Nom de l'activité choisie
+         * @param {string} url - Lien vers l'activité
+         */
+        function showFeedback(type, activityName, url = '') {
+            targetUrl = url;
+            
+            // Configuration selon le type
+            if (type === 'success') {
+                modalIcon.textContent = '🚀';
+                modalTitle.textContent = 'Bravo !';
+                modalTitle.className = 'text-4xl font-bold mb-4 text-cartoon-green';
+                modalMessage.innerHTML = `Tu as choisi <strong>${activityName}</strong>.<br>Prêt(e) à relever le défi ?`;
+                
+                btnAction.textContent = "C'est parti !";
+                btnAction.className = 'flex-1 py-3 px-6 rounded-2xl text-xl font-bold text-white btn-cartoon shadow-cartoon bg-cartoon-green';
+                
+                btnCancel.classList.remove('hidden'); // Afficher le bouton annuler
+            } else {
+                modalIcon.textContent = '🚧';
+                modalTitle.textContent = 'Oups !';
+                modalTitle.className = 'text-4xl font-bold mb-4 text-cartoon-red';
+                modalMessage.innerHTML = `L'activité <strong>${activityName}</strong> n'est pas encore prête.<br>Reviens plus tard !`;
+                
+                btnAction.textContent = "Retour";
+                btnAction.className = 'flex-1 py-3 px-6 rounded-2xl text-xl font-bold text-white btn-cartoon shadow-cartoon bg-cartoon-red';
+                
+                btnCancel.classList.add('hidden'); // Cacher le bouton annuler
+            }
+
+            // Affichage avec animation
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            
+            // Petit délai pour déclencher la transition CSS
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+                modalCard.classList.remove('scale-90');
+                modalCard.classList.add('scale-100');
+            });
+        }
+
+        /**
+         * Ferme la modale
+         * @param {boolean} proceed - Si vrai, redirige vers targetUrl
+         */
+        function closeModal(proceed = false) {
+            modal.classList.add('opacity-0');
+            modalCard.classList.remove('scale-100');
+            modalCard.classList.add('scale-90');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                
+                // Redirection
+                if (proceed && targetUrl) {
+                    window.location.href = targetUrl;
+                }
+            }, 300); // Correspond à la durée de transition CSS
+        }
+
+        // --- 4. INITIALISATION ET ÉVÉNEMENTS ---
+
+        // Génération des cartes HTML
+        function renderActivities() {
+            try {
+                gridContainer.innerHTML = ''; // Nettoyage
+                
+                activities.forEach((act, index) => {
+                    const delay = index * 100; // Effet cascade
+                    
+                    const card = document.createElement('div');
+                    card.className = `card-animate bg-white rounded-[2rem] p-6 flex flex-col items-center justify-center text-center cursor-pointer shadow-cartoon btn-cartoon group relative overflow-hidden`;
+                    card.style.animationDelay = `${delay}ms`;
+                    
+                    card.innerHTML = `
+                        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full ${act.colorClass} border-4 border-cartoon-dark flex items-center justify-center text-5xl sm:text-6xl mb-4 shadow-inner transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 z-10 bg-white">
+                            ${act.icon}
+                        </div>
+                        <h3 class="text-2xl font-bold text-cartoon-dark z-10">${act.name}</h3>
+                        ${!act.isReady ? '<div class="absolute inset-0 bg-slate-200/50 z-20"></div><div class="absolute top-4 right-4 text-2xl z-30 transform rotate-12">🔒</div>' : ''}
+                    `;
+
+                    // Événement au clic
+                    card.addEventListener('click', () => {
+                        if (act.isReady) {
+                            showFeedback('success', act.name, BASE_URL + act.file);
+                        } else {
+                            showFeedback('error', act.name);
+                        }
+                    });
+
+                    gridContainer.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Erreur lors de la génération des activités :", error);
+                gridContainer.innerHTML = `<p class="text-red-500 font-bold col-span-full text-center">Une erreur est survenue lors du chargement des activités.</p>`;
+            }
+        }
+
+        // Écouteurs pour la modale
+        btnAction.addEventListener('click', () => {
+            // Si targetUrl existe, on redirige, sinon on ferme juste la modale (cas de l'erreur)
+            closeModal(!!targetUrl);
+        });
+
+        btnCancel.addEventListener('click', () => {
+            closeModal(false);
+        });
+
+        // Fermer la modale en cliquant en dehors
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal(false);
+            }
+        });
+
+        // Lancement au chargement de la page
+        document.addEventListener('DOMContentLoaded', renderActivities);
+
+    </script>
+</body>
+</html>
