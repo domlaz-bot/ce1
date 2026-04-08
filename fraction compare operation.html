@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Défi des Fractions Magiques</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts pour un style enfantin et lisible -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0f9ff;
+            background-image: radial-gradient(#bae6fd 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+
+        /* Animations personnalisées */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: pop 0.4s ease-out forwards;
+        }
+
+        .fraction-text {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+        .fraction-text span:first-child {
+            border-bottom: 3px solid currentColor;
+            padding: 0 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-8 px-4 text-slate-800">
+
+    <!-- En-tête -->
+    <header class="w-full max-w-3xl bg-white rounded-3xl shadow-xl p-4 mb-6 flex justify-between items-center border-4 border-blue-400">
+        <div class="flex items-center gap-3">
+            <div class="text-4xl">🧙‍♂️</div>
+            <h1 class="text-2xl md:text-3xl font-bold text-blue-600">L'École des Fractions</h1>
+        </div>
+        <div class="flex flex-col items-end">
+            <div class="text-xl font-bold text-amber-500 flex items-center gap-2">
+                Score: <span id="scoreDisplay" class="text-2xl">0</span> 🌟
+            </div>
+            <div class="text-sm font-semibold text-slate-500" id="levelDisplay">Niveau 1/3</div>
+        </div>
+    </header>
+
+    <!-- Écran d'accueil -->
+    <main id="startScreen" class="w-full max-w-3xl bg-white rounded-3xl shadow-xl p-8 text-center border-4 border-yellow-400 animate-pop">
+        <h2 class="text-3xl font-bold text-slate-700 mb-6">Bienvenue au défi magique !</h2>
+        <p class="text-xl mb-8 text-slate-600">Aide le magicien à préparer ses potions en utilisant les bonnes fractions.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-left">
+            <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
+                <span class="text-2xl block mb-2">👁️</span>
+                <p class="font-semibold">Niveau 1</p>
+                <p class="text-sm">Compare les fractions</p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-xl border-2 border-green-200">
+                <span class="text-2xl block mb-2">➕</span>
+                <p class="font-semibold">Niveau 2</p>
+                <p class="text-sm">Additionne les fractions</p>
+            </div>
+            <div class="bg-red-50 p-4 rounded-xl border-2 border-red-200">
+                <span class="text-2xl block mb-2">➖</span>
+                <p class="font-semibold">Niveau 3</p>
+                <p class="text-sm">Soustrais les fractions</p>
+            </div>
+        </div>
+
+        <button onclick="startGame()" class="bg-gradient-to-b from-yellow-300 to-yellow-500 hover:from-yellow-400 hover:to-yellow-600 text-yellow-900 text-2xl font-bold py-4 px-12 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 border-4 border-yellow-600">
+            C'est parti ! 🚀
+        </button>
+    </main>
+
+    <!-- Zone de jeu -->
+    <main id="gameScreen" class="w-full max-w-3xl bg-white rounded-3xl shadow-xl p-6 md:p-8 border-4 border-blue-400 hidden relative overflow-hidden">
+        
+        <!-- Feedback Overlay -->
+        <div id="feedbackOverlay" class="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm hidden">
+            <div id="feedbackContent" class="text-center transform scale-0 transition-transform duration-300 max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl border-4">
+                <div id="feedbackIcon" class="text-8xl mb-4"></div>
+                <h3 id="feedbackText" class="text-4xl font-bold mb-4"></h3>
+                
+                <!-- Zone pour le résultat complet ou l'explication -->
+                <div id="feedbackResult" class="text-3xl font-semibold text-slate-700 mb-6 flex items-center justify-center gap-4 flex-wrap"></div>
+                <div id="feedbackExplanation" class="text-xl text-slate-700 mb-8 hidden bg-slate-50 p-5 rounded-2xl border-2 border-slate-200 leading-relaxed"></div>
+                
+                <div class="flex justify-center gap-4 mt-4">
+                    <button id="retryBtn" onclick="hideFeedback()" class="hidden bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-3 px-8 rounded-full shadow-lg border-b-4 border-amber-700 active:translate-y-1 active:border-b-0 flex items-center gap-2">
+                        Réessayer 🔄
+                    </button>
+                    <button id="nextBtn" onclick="nextQuestion()" class="hidden bg-green-500 hover:bg-green-600 text-white text-xl font-bold py-3 px-8 rounded-full shadow-lg border-b-4 border-green-700 active:translate-y-1 active:border-b-0 flex items-center gap-2">
+                        Continuer ➡️
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progression -->
+        <div class="w-full bg-slate-200 rounded-full h-4 mb-6">
+            <div id="progressBar" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+
+        <!-- Consigne -->
+        <h2 id="instructionText" class="text-2xl md:text-3xl font-bold text-center text-slate-700 mb-6"></h2>
+
+        <!-- Zone Mathématique (Toujours visible) -->
+        <div id="mathArea" class="flex items-center justify-center gap-4 mb-6 text-4xl font-bold">
+            <!-- Généré en JS -->
+        </div>
+
+        <!-- Bouton d'aide visuelle -->
+        <div class="text-center mb-6">
+            <button id="toggleVisualBtn" onclick="toggleVisuals()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold py-3 px-6 rounded-full border-2 border-indigo-300 transition-colors inline-flex items-center justify-center gap-2 shadow-sm">
+                <span class="text-xl">👁️</span> Afficher l'aide visuelle
+            </button>
+        </div>
+
+        <!-- Wrapper Visuel (caché par défaut) -->
+        <div id="visualWrapper" class="hidden">
+            <!-- Zone Visuelle -->
+            <div id="visualArea" class="flex flex-col md:flex-row items-center justify-center gap-6 mb-10 min-h-[150px]">
+                <!-- Généré en JS -->
+            </div>
+        </div>
+
+        <!-- Zone de réponse -->
+        <div id="optionsArea" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Généré en JS -->
+        </div>
+    </main>
+
+    <!-- Écran de fin -->
+    <main id="endScreen" class="w-full max-w-3xl bg-white rounded-3xl shadow-xl p-8 text-center border-4 border-green-400 hidden animate-pop">
+        <div class="text-6xl mb-6">🏆</div>
+        <h2 class="text-4xl font-bold text-slate-700 mb-4">Bravo Champion !</h2>
+        <p class="text-2xl mb-8">Tu as terminé tous les niveaux !</p>
+        <p class="text-3xl font-bold text-amber-500 mb-8">Ton score final : <span id="finalScoreDisplay"></span> 🌟</p>
+        
+        <button onclick="resetGame()" class="bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white text-2xl font-bold py-4 px-12 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 border-4 border-green-800">
+            Rejouer 🔄
+        </button>
+    </main>
+
+    <script>
+        // État de l'application
+        const gameState = {
+            level: 1, // 1: Comparer, 2: Additionner, 3: Soustraire
+            score: 0,
+            questionIndex: 0,
+            questionsPerLevel: 5,
+            currentQuestion: null,
+            attempts: 0
+        };
+
+        // Éléments du DOM
+        const screens = {
+            start: document.getElementById('startScreen'),
+            game: document.getElementById('gameScreen'),
+            end: document.getElementById('endScreen')
+        };
+        const displays = {
+            score: document.getElementById('scoreDisplay'),
+            level: document.getElementById('levelDisplay'),
+            instruction: document.getElementById('instructionText'),
+            math: document.getElementById('mathArea'),
+            visualWrapper: document.getElementById('visualWrapper'),
+            toggleVisualBtn: document.getElementById('toggleVisualBtn'),
+            visual: document.getElementById('visualArea'),
+            options: document.getElementById('optionsArea'),
+            progress: document.getElementById('progressBar')
+        };
+        const feedback = {
+            overlay: document.getElementById('feedbackOverlay'),
+            content: document.getElementById('feedbackContent'),
+            icon: document.getElementById('feedbackIcon'),
+            text: document.getElementById('feedbackText'),
+            result: document.getElementById('feedbackResult'),
+            explanation: document.getElementById('feedbackExplanation'),
+            btnNext: document.getElementById('nextBtn'),
+            btnRetry: document.getElementById('retryBtn')
+        };
+
+        // Fonction pour formater le texte en fraction (HTML)
+        function formatFractionText(n, d) {
+            return `<div class="fraction-text text-xl"><span>${n}</span><span>${d}</span></div>`;
+        }
+
+        // Fonction pour générer une barre de fraction (HTML)
+        function generateFractionBar(n, d, colorClass = 'bg-blue-500', size = 'large') {
+            const widthClass = size === 'large' ? 'w-full md:w-64' : 'w-32';
+            const heightClass = size === 'large' ? 'h-16 md:h-20' : 'h-10';
+            
+            let partsHTML = '';
+            for (let i = 0; i < d; i++) {
+                const isFilled = i < n;
+                const borderRight = i < d - 1 ? 'border-r-2 border-slate-700' : '';
+                partsHTML += `<div class="flex-1 ${isFilled ? colorClass : 'bg-white'} ${borderRight}"></div>`;
+            }
+
+            return `
+                <div class="flex flex-col items-center gap-2">
+                    <div class="flex border-4 border-slate-700 rounded-lg overflow-hidden shadow-md ${widthClass} ${heightClass}">
+                        ${partsHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Fonction pour afficher/masquer l'aide visuelle
+        function toggleVisuals() {
+            const wrapper = displays.visualWrapper;
+            const btn = displays.toggleVisualBtn;
+            if (wrapper.classList.contains('hidden')) {
+                wrapper.classList.remove('hidden');
+                btn.innerHTML = "<span class='text-xl'>🙈</span> Masquer l'aide visuelle";
+            } else {
+                wrapper.classList.add('hidden');
+                btn.innerHTML = "<span class='text-xl'>👁️</span> Afficher l'aide visuelle";
+            }
+        }
+
+        // --- GÉNÉRATION DES QUESTIONS ---
+
+        function generateCompareQuestion() {
+            const d = Math.floor(Math.random() * 5) + 2; // Dénominateur 2 à 6
+            const n1 = Math.floor(Math.random() * d) + 1;
+            let n2 = Math.floor(Math.random() * d) + 1;
+            
+            // Éviter qu'elles soient toujours égales
+            if (Math.random() > 0.3 && n1 === n2) {
+                n2 = (n2 % d) + 1; 
+            }
+
+            let correctAnswer;
+            if (n1 > n2) correctAnswer = "1";
+            else if (n2 > n1) correctAnswer = "2";
+            else correctAnswer = "equal";
+
+            return {
+                type: 'compare',
+                d: d,
+                n1: n1,
+                n2: n2,
+                correctAnswer: correctAnswer,
+                instruction: "Quelle barre est la plus remplie ?"
+            };
+        }
+
+        function generateAddQuestion() {
+            const d = Math.floor(Math.random() * 4) + 3; // 3 à 6
+            const n1 = Math.floor(Math.random() * (d - 1)) + 1; // max d-1
+            const maxN2 = d - n1;
+            const n2 = Math.floor(Math.random() * maxN2) + 1;
+            
+            const correctAnswer = n1 + n2;
+
+            // Générer des fausses réponses
+            let options = new Set([correctAnswer]);
+            while(options.size < 3) {
+                let wrong = Math.floor(Math.random() * (d + 2)) + 1;
+                if(wrong !== correctAnswer) options.add(wrong);
+            }
+
+            return {
+                type: 'add',
+                d: d,
+                n1: n1,
+                n2: n2,
+                correctAnswer: correctAnswer,
+                options: Array.from(options).sort((a,b) => a-b),
+                instruction: "Additionne ces deux morceaux :"
+            };
+        }
+
+        function generateSubtractQuestion() {
+            const d = Math.floor(Math.random() * 4) + 3; // 3 à 6
+            const n1 = Math.floor(Math.random() * (d - 1)) + 2; // min 2, max d
+            const n2 = Math.floor(Math.random() * (n1 - 1)) + 1; // 1 à n1-1
+            
+            const correctAnswer = n1 - n2;
+
+            // Générer des fausses réponses
+            let options = new Set([correctAnswer]);
+            while(options.size < 3) {
+                let wrong = Math.floor(Math.random() * d) + 1;
+                if(wrong !== correctAnswer && wrong > 0) options.add(wrong);
+            }
+
+            return {
+                type: 'subtract',
+                d: d,
+                n1: n1,
+                n2: n2,
+                correctAnswer: correctAnswer,
+                options: Array.from(options).sort((a,b) => a-b),
+                instruction: "Soustrais (enlève) le 2ème morceau au 1er :"
+            };
+        }
+
+        // --- LOGIQUE DU JEU ---
+
+        function startGame() {
+            screens.start.classList.add('hidden');
+            screens.game.classList.remove('hidden');
+            resetGame(false);
+            loadNextQuestion();
+        }
+
+        function resetGame(full = true) {
+            gameState.level = 1;
+            gameState.score = 0;
+            gameState.questionIndex = 0;
+            updateHUD();
+            
+            if(full) {
+                screens.end.classList.add('hidden');
+                screens.game.classList.remove('hidden');
+                loadNextQuestion();
+            }
+        }
+
+        function updateHUD() {
+            displays.score.innerText = gameState.score;
+            displays.level.innerText = `Niveau ${gameState.level}/3`;
+            
+            const progress = (gameState.questionIndex / gameState.questionsPerLevel) * 100;
+            displays.progress.style.width = `${progress}%`;
+            
+            // Changement de couleur selon le niveau
+            let colors = ['bg-blue-500', 'bg-green-500', 'bg-red-500'];
+            displays.progress.className = `h-4 rounded-full transition-all duration-500 ${colors[gameState.level-1]}`;
+        }
+
+        function loadNextQuestion() {
+            gameState.attempts = 0;
+            feedback.overlay.classList.add('hidden');
+            displays.options.innerHTML = '';
+            displays.visual.innerHTML = '';
+            displays.math.innerHTML = '';
+            
+            if (gameState.questionIndex >= gameState.questionsPerLevel) {
+                gameState.level++;
+                gameState.questionIndex = 0;
+                if (gameState.level > 3) {
+                    endGame();
+                    return;
+                }
+            }
+
+            updateHUD();
+
+            switch (gameState.level) {
+                case 1: gameState.currentQuestion = generateCompareQuestion(); break;
+                case 2: gameState.currentQuestion = generateAddQuestion(); break;
+                case 3: gameState.currentQuestion = generateSubtractQuestion(); break;
+            }
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = gameState.currentQuestion;
+            // On ajoute une petite consigne pour indiquer la nouvelle interaction
+            displays.instruction.innerText = q.instruction + " (Glisse la réponse ou clique dessus)";
+
+            // Masquer l'aide visuelle par défaut à chaque nouvelle question
+            displays.visualWrapper.classList.add('hidden');
+            displays.toggleVisualBtn.innerHTML = "<span class='text-xl'>👁️</span> Afficher l'aide visuelle";
+
+            // Définition de la case de réponse (Drop Zone) avec événements de Drag & Drop
+            const dropZoneHTML = `<div id="mathAnswerBox" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" class="text-4xl text-slate-400 mx-4 border-4 border-dashed border-slate-300 w-24 h-24 flex items-center justify-center rounded-xl transition-all duration-200 bg-slate-50 shadow-inner">?</div>`;
+
+            if (q.type === 'compare') {
+                displays.math.innerHTML = `
+                    ${formatFractionText(q.n1, q.d)}
+                    ${dropZoneHTML}
+                    ${formatFractionText(q.n2, q.d)}
+                `;
+
+                displays.visual.innerHTML = `
+                    <div class="flex flex-col items-center gap-4">
+                        <div class="text-xl font-bold bg-blue-100 px-4 py-2 rounded-full text-blue-700">Barre 1</div>
+                        ${generateFractionBar(q.n1, q.d, 'bg-blue-400')}
+                    </div>
+                    <div class="text-4xl font-bold text-slate-400 hidden md:block px-4">?</div>
+                    <div class="flex flex-col items-center gap-4">
+                        <div class="text-xl font-bold bg-purple-100 px-4 py-2 rounded-full text-purple-700">Barre 2</div>
+                        ${generateFractionBar(q.n2, q.d, 'bg-purple-400')}
+                    </div>
+                `;
+
+                // Ajout de draggable="true" et des événements de drag
+                displays.options.innerHTML = `
+                    <div draggable="true" ondragstart="drag(event, '1')" onclick="handleAnswer('1')" class="cursor-grab active:cursor-grabbing bg-blue-100 hover:bg-blue-200 border-4 border-blue-400 text-blue-800 text-5xl font-bold py-4 px-6 rounded-2xl transform transition hover:-translate-y-1 flex items-center justify-center select-none shadow-sm">&gt;</div>
+                    <div draggable="true" ondragstart="drag(event, 'equal')" onclick="handleAnswer('equal')" class="cursor-grab active:cursor-grabbing bg-slate-100 hover:bg-slate-200 border-4 border-slate-400 text-slate-800 text-5xl font-bold py-4 px-6 rounded-2xl transform transition hover:-translate-y-1 flex items-center justify-center select-none shadow-sm">=</div>
+                    <div draggable="true" ondragstart="drag(event, '2')" onclick="handleAnswer('2')" class="cursor-grab active:cursor-grabbing bg-purple-100 hover:bg-purple-200 border-4 border-purple-400 text-purple-800 text-5xl font-bold py-4 px-6 rounded-2xl transform transition hover:-translate-y-1 flex items-center justify-center select-none shadow-sm">&lt;</div>
+                `;
+            } 
+            else if (q.type === 'add') {
+                displays.math.innerHTML = `
+                    ${formatFractionText(q.n1, q.d)}
+                    <div class="text-5xl font-bold text-slate-700 mx-2">+</div>
+                    ${formatFractionText(q.n2, q.d)}
+                    <div class="text-5xl font-bold text-slate-700 mx-2">=</div>
+                    ${dropZoneHTML}
+                `;
+
+                displays.visual.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        ${generateFractionBar(q.n1, q.d, 'bg-green-400')}
+                    </div>
+                    <div class="text-5xl font-bold text-slate-700">+</div>
+                    <div class="flex flex-col items-center">
+                        ${generateFractionBar(q.n2, q.d, 'bg-green-400')}
+                    </div>
+                `;
+
+                q.options.forEach(opt => {
+                    const btn = document.createElement('div');
+                    btn.draggable = true;
+                    btn.ondragstart = (ev) => drag(ev, opt);
+                    btn.onclick = () => handleAnswer(opt);
+                    btn.className = "cursor-grab active:cursor-grabbing bg-green-100 hover:bg-green-200 border-4 border-green-400 text-green-800 text-2xl font-bold py-4 px-6 rounded-2xl transform transition hover:-translate-y-1 flex items-center justify-center gap-2 select-none shadow-sm";
+                    btn.innerHTML = formatFractionText(opt, q.d);
+                    displays.options.appendChild(btn);
+                });
+            }
+            else if (q.type === 'subtract') {
+                displays.math.innerHTML = `
+                    ${formatFractionText(q.n1, q.d)}
+                    <div class="text-5xl font-bold text-slate-700 mx-2">-</div>
+                    ${formatFractionText(q.n2, q.d)}
+                    <div class="text-5xl font-bold text-slate-700 mx-2">=</div>
+                    ${dropZoneHTML}
+                `;
+
+                displays.visual.innerHTML = `
+                    <div class="flex flex-col items-center relative">
+                        ${generateFractionBar(q.n1, q.d, 'bg-red-400')}
+                    </div>
+                    <div class="text-5xl font-bold text-slate-700">-</div>
+                    <div class="flex flex-col items-center">
+                        ${generateFractionBar(q.n2, q.d, 'bg-slate-300')}
+                    </div>
+                `;
+
+                q.options.forEach(opt => {
+                    const btn = document.createElement('div');
+                    btn.draggable = true;
+                    btn.ondragstart = (ev) => drag(ev, opt);
+                    btn.onclick = () => handleAnswer(opt);
+                    btn.className = "cursor-grab active:cursor-grabbing bg-red-100 hover:bg-red-200 border-4 border-red-400 text-red-800 text-2xl font-bold py-4 px-6 rounded-2xl transform transition hover:-translate-y-1 flex items-center justify-center gap-2 select-none shadow-sm";
+                    btn.innerHTML = formatFractionText(opt, q.d);
+                    displays.options.appendChild(btn);
+                });
+            }
+        }
+
+        // --- GESTION DU DRAG & DROP ---
+        function allowDrop(ev) {
+            ev.preventDefault(); // Nécessaire pour autoriser le drop
+        }
+
+        function dragEnter(ev) {
+            ev.preventDefault();
+            const box = document.getElementById('mathAnswerBox');
+            if(box) {
+                box.classList.add('bg-blue-100', 'border-blue-400', 'scale-110');
+                box.classList.remove('bg-slate-50', 'border-slate-300');
+            }
+        }
+
+        function dragLeave(ev) {
+            const box = document.getElementById('mathAnswerBox');
+            if(box) {
+                box.classList.remove('bg-blue-100', 'border-blue-400', 'scale-110');
+                box.classList.add('bg-slate-50', 'border-slate-300');
+            }
+        }
+
+        function drag(ev, answer) {
+            ev.dataTransfer.setData("text", answer);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            dragLeave(ev); // Nettoyer les styles de survol
+            const data = ev.dataTransfer.getData("text");
+            if(data) {
+                handleAnswer(data);
+            }
+        }
+
+        function handleAnswer(answer) {
+            const isCorrect = String(answer) === String(gameState.currentQuestion.correctAnswer);
+            gameState.attempts++;
+
+            const answerBox = document.getElementById('mathAnswerBox');
+            const q = gameState.currentQuestion;
+
+            // Affichage de la réponse dans la case ?
+            if (answerBox) {
+                if (q.type === 'compare') {
+                    let symbol = '=';
+                    if (answer === '1') symbol = '&gt;';
+                    if (answer === '2') symbol = '&lt;';
+                    answerBox.innerHTML = symbol;
+                } else {
+                    answerBox.innerHTML = formatFractionText(answer, q.d);
+                }
+                
+                // Changement de style de la boite après réponse
+                answerBox.className = "text-4xl mx-4 border-4 w-24 h-24 flex items-center justify-center rounded-xl transition-all duration-200 select-none";
+                if (isCorrect) {
+                    answerBox.classList.add('text-green-600', 'border-solid', 'border-green-500', 'bg-green-50');
+                } else {
+                    answerBox.classList.add('text-red-600', 'border-solid', 'border-red-500', 'bg-red-50');
+                }
+            }
+
+            if (isCorrect) {
+                if (gameState.attempts === 1) gameState.score += 10; // Bonus premier coup
+                else gameState.score += 5;
+                
+                showFeedback(true, answer);
+            } else {
+                showFeedback(false, answer);
+                // Animation d'erreur sur les boutons
+                displays.options.classList.add('animate-shake');
+                setTimeout(() => displays.options.classList.remove('animate-shake'), 500);
+            }
+        }
+
+        function showFeedback(isCorrect, answer) {
+            feedback.overlay.classList.remove('hidden');
+            const q = gameState.currentQuestion;
+            
+            // Animation reset
+            feedback.content.classList.remove('scale-100');
+            void feedback.content.offsetWidth; // trigger reflow
+            feedback.content.classList.add('scale-100');
+
+            if (isCorrect) {
+                feedback.content.className = "text-center transform scale-100 transition-transform duration-300 max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl border-4 border-green-400";
+                feedback.icon.innerText = "🌟";
+                feedback.text.innerText = "Bravo !";
+                feedback.text.className = "text-4xl font-bold mb-6 text-green-500";
+                
+                // On construit l'affichage de l'équation réussie
+                let equationHTML = '';
+                if (q.type === 'compare') {
+                    let symbol = q.correctAnswer === '1' ? '&gt;' : (q.correctAnswer === '2' ? '&lt;' : '=');
+                    equationHTML = `${formatFractionText(q.n1, q.d)} <span class="text-green-500 mx-2">${symbol}</span> ${formatFractionText(q.n2, q.d)}`;
+                } else if (q.type === 'add') {
+                    equationHTML = `${formatFractionText(q.n1, q.d)} <span class="mx-1">+</span> ${formatFractionText(q.n2, q.d)} <span class="mx-1">=</span> <span class="text-green-500 bg-green-50 px-3 py-1 rounded-xl border-2 border-green-200">${formatFractionText(answer, q.d)}</span>`;
+                } else if (q.type === 'subtract') {
+                    equationHTML = `${formatFractionText(q.n1, q.d)} <span class="mx-1">-</span> ${formatFractionText(q.n2, q.d)} <span class="mx-1">=</span> <span class="text-green-500 bg-green-50 px-3 py-1 rounded-xl border-2 border-green-200">${formatFractionText(answer, q.d)}</span>`;
+                }
+
+                feedback.result.innerHTML = equationHTML;
+                feedback.result.classList.remove('hidden');
+                feedback.explanation.classList.add('hidden');
+
+                feedback.btnNext.classList.remove('hidden');
+                feedback.btnRetry.classList.add('hidden');
+                updateHUD();
+                
+                // Effet de particules
+                feedback.icon.classList.add('animate-pop');
+                setTimeout(() => feedback.icon.classList.remove('animate-pop'), 400);
+
+            } else {
+                feedback.content.className = "text-center transform scale-100 transition-transform duration-300 max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl border-4 border-amber-400";
+                feedback.icon.innerText = "🤔";
+                feedback.text.innerText = "Presque !";
+                feedback.text.className = "text-4xl font-bold mb-4 text-amber-500";
+                
+                // On génère une explication ciblée
+                let explanationHTML = '';
+                if (q.type === 'compare') {
+                    if (q.correctAnswer === 'equal') {
+                        explanationHTML = "💡 <b>Indice :</b> Regarde bien, les nombres en haut (les numérateurs) sont identiques ! Les fractions sont donc égales.";
+                    } else {
+                        let grand = Math.max(q.n1, q.n2);
+                        let petit = Math.min(q.n1, q.n2);
+                        explanationHTML = `💡 <b>Indice :</b> Le nombre du bas est le même. Regarde en haut : <b>${grand}</b> est plus grand que <b>${petit}</b>. La plus grande fraction est celle qui a le plus grand nombre en haut !`;
+                    }
+                } else if (q.type === 'add') {
+                    explanationHTML = `💡 <b>Règle magique :</b> On additionne seulement les nombres du haut (<b>${q.n1} + ${q.n2}</b>). Le nombre du bas reste toujours le même !`;
+                } else if (q.type === 'subtract') {
+                    explanationHTML = `💡 <b>Règle magique :</b> On soustrait seulement les nombres du haut (<b>${q.n1} - ${q.n2}</b>). Le nombre du bas reste toujours le même !`;
+                }
+
+                feedback.result.classList.add('hidden');
+                feedback.explanation.innerHTML = explanationHTML;
+                feedback.explanation.classList.remove('hidden');
+
+                feedback.btnNext.classList.add('hidden');
+                feedback.btnRetry.classList.remove('hidden');
+            }
+        }
+
+        function hideFeedback() {
+            feedback.overlay.classList.add('hidden');
+            
+            // Remettre le point d'interrogation car l'élève va réessayer
+            const answerBox = document.getElementById('mathAnswerBox');
+            if (answerBox) {
+                answerBox.innerHTML = "?";
+                // On réinitialise l'apparence de la zone de drop
+                answerBox.className = "text-4xl text-slate-400 mx-4 border-4 border-dashed border-slate-300 w-24 h-24 flex items-center justify-center rounded-xl transition-all duration-200 bg-slate-50 shadow-inner";
+            }
+        }
+
+        function nextQuestion() {
+            gameState.questionIndex++;
+            loadNextQuestion();
+        }
+
+        function endGame() {
+            screens.game.classList.add('hidden');
+            screens.end.classList.remove('hidden');
+            document.getElementById('finalScoreDisplay').innerText = gameState.score;
+        }
+
+    </script>
+</body>
+</html>
