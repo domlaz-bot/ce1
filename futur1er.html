@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Futur Simple - Mission CE1</title>
+    
+    <!-- Police enfantine et lisible -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuration Tailwind pour la police personnalisée et les animations -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Fredoka', 'sans-serif'],
+                    },
+                    animation: {
+                        'wiggle': 'wiggle 0.5s ease-in-out',
+                        'bounce-short': 'bounce 0.5s ease-in-out 2',
+                    },
+                    keyframes: {
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Styles additionnels pour le feedback visuel */
+        .btn-option {
+            transition: all 0.2s;
+        }
+        .btn-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .correct-answer {
+            background-color: #4ade80 !important; /* Vert */
+            color: white !important;
+            border-color: #22c55e !important;
+            transform: scale(1.05);
+        }
+        .wrong-answer {
+            background-color: #f87171 !important; /* Rouge */
+            color: white !important;
+            border-color: #ef4444 !important;
+            animation: wiggle 0.5s ease-in-out;
+        }
+        .ending {
+            color: #ef4444; /* Rouge pour mettre en évidence les terminaisons */
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="bg-sky-100 min-h-screen text-slate-800 font-sans p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-sky-300">
+        
+        <!-- En-tête -->
+        <header class="bg-sky-400 text-white p-6 relative flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="text-5xl bg-white rounded-full p-2 shadow-lg">🦊</div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold text-yellow-300 drop-shadow-md">Le Futur Simple</h1>
+                    <p class="text-sky-100 text-lg md:text-xl font-medium mt-1">Avec Léo le renard !</p>
+                </div>
+            </div>
+            
+            <div id="score-container" class="hidden md:flex flex-col items-center bg-sky-500 rounded-xl p-3 shadow-inner mt-4 md:mt-0">
+                <span class="text-sm uppercase font-bold text-sky-200 tracking-wider">Score</span>
+                <span class="text-3xl font-bold text-yellow-300">⭐ <span id="score-display">0</span>/20</span>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b-2 border-sky-100 bg-sky-50">
+            <button id="tab-lesson" class="flex-1 py-4 text-xl font-bold text-sky-600 hover:bg-sky-100 transition-colors border-b-4 border-sky-500 bg-white" onclick="switchTab('lesson')">
+                📖 Ma Leçon
+            </button>
+            <button id="tab-quiz" class="flex-1 py-4 text-xl font-bold text-slate-500 hover:text-sky-600 hover:bg-sky-100 transition-colors border-b-4 border-transparent" onclick="switchTab('quiz')">
+                🎮 Jouer !
+            </button>
+        </div>
+
+        <!-- Section Leçon -->
+        <main id="section-lesson" class="p-6 md:p-10">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-sky-600 mb-2">Comment conjuguer au futur ?</h2>
+                <p class="text-lg text-slate-600">Le futur, c'est pour raconter ce qui va se passer <strong>demain</strong>, <strong>plus tard</strong>, ou <strong>bientôt</strong>.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Verbes en -ER -->
+                <div class="bg-green-50 rounded-2xl p-5 border-2 border-green-200 shadow-sm">
+                    <h3 class="text-xl font-bold text-green-600 mb-4 text-center">Les verbes en -ER<br><span class="text-sm font-normal">(ex: JOUER)</span></h3>
+                    <ul class="space-y-2 text-lg">
+                        <li>Je jouer<span class="ending">ai</span></li>
+                        <li>Tu jouer<span class="ending">as</span></li>
+                        <li>Il/Elle/On jouer<span class="ending">a</span></li>
+                        <li>Nous jouer<span class="ending">ons</span></li>
+                        <li>Vous jouer<span class="ending">ez</span></li>
+                        <li>Ils/Elles jouer<span class="ending">ont</span></li>
+                    </ul>
+                    <p class="mt-4 text-sm text-green-700 bg-green-100 p-2 rounded-lg">On garde le verbe entier et on ajoute la terminaison !</p>
+                </div>
+
+                <!-- Être -->
+                <div class="bg-yellow-50 rounded-2xl p-5 border-2 border-yellow-200 shadow-sm">
+                    <h3 class="text-xl font-bold text-yellow-600 mb-4 text-center">ÊTRE<br><span class="text-sm font-normal">(Attention, il change !)</span></h3>
+                    <ul class="space-y-2 text-lg">
+                        <li>Je ser<span class="ending">ai</span></li>
+                        <li>Tu ser<span class="ending">as</span></li>
+                        <li>Il/Elle/On ser<span class="ending">a</span></li>
+                        <li>Nous ser<span class="ending">ons</span></li>
+                        <li>Vous ser<span class="ending">ez</span></li>
+                        <li>Ils/Elles ser<span class="ending">ont</span></li>
+                    </ul>
+                </div>
+
+                <!-- Avoir -->
+                <div class="bg-purple-50 rounded-2xl p-5 border-2 border-purple-200 shadow-sm">
+                    <h3 class="text-xl font-bold text-purple-600 mb-4 text-center">AVOIR<br><span class="text-sm font-normal">(Attention, il change !)</span></h3>
+                    <ul class="space-y-2 text-lg">
+                        <li>J'aur<span class="ending">ai</span></li>
+                        <li>Tu aur<span class="ending">as</span></li>
+                        <li>Il/Elle/On aur<span class="ending">a</span></li>
+                        <li>Nous aur<span class="ending">ons</span></li>
+                        <li>Vous aur<span class="ending">ez</span></li>
+                        <li>Ils/Elles aur<span class="ending">ont</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-10 text-center">
+                <button onclick="switchTab('quiz')" class="bg-sky-500 hover:bg-sky-400 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg transform transition hover:scale-105 active:scale-95">
+                    J'ai compris, on joue ! 🚀
+                </button>
+            </div>
+        </main>
+
+        <!-- Section Quiz -->
+        <main id="section-quiz" class="p-6 md:p-10 hidden">
+            
+            <!-- Barre de progression -->
+            <div class="mb-8">
+                <div class="flex justify-between text-sm font-bold text-sky-600 mb-2">
+                    <span id="question-counter">Question 1/20</span>
+                </div>
+                <div class="w-full bg-sky-100 rounded-full h-4">
+                    <div id="progress-bar" class="bg-yellow-400 h-4 rounded-full transition-all duration-500" style="width: 5%"></div>
+                </div>
+            </div>
+
+            <!-- Conteneur de la question -->
+            <div id="game-container" class="bg-white border-2 border-sky-100 rounded-2xl p-6 shadow-sm text-center">
+                <p class="text-2xl md:text-3xl font-bold text-slate-700 mb-8" id="question-text">
+                    Demain, je <span class="inline-block min-w-[100px] border-b-4 border-dashed border-sky-300 text-transparent">___</span> avec mon chien.
+                </p>
+                <p class="text-lg text-slate-500 mb-6 italic" id="question-hint">(Verbe JOUER)</p>
+
+                <!-- Options -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="options-container">
+                    <!-- Les boutons seront générés par JS -->
+                </div>
+            </div>
+
+            <!-- Zone de Feedback (Cachée par défaut) -->
+            <div id="feedback-container" class="hidden mt-8 p-6 rounded-2xl text-center border-2">
+                <div class="text-5xl mb-2" id="feedback-icon">🌟</div>
+                <h3 class="text-2xl font-bold mb-2" id="feedback-title">Bravo !</h3>
+                <p class="text-lg mb-6" id="feedback-message">C'est la bonne réponse.</p>
+                <button id="next-btn" onclick="nextQuestion()" class="bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-8 rounded-full text-xl shadow-md transform transition hover:scale-105 active:scale-95">
+                    Question suivante ➡️
+                </button>
+            </div>
+
+            <!-- Écran de fin (Caché par défaut) -->
+            <div id="end-screen" class="hidden mt-4 text-center">
+                <div class="text-6xl mb-4">🏆</div>
+                <h2 class="text-4xl font-bold text-sky-600 mb-4">Mission accomplie !</h2>
+                <p class="text-2xl text-slate-700 mb-8">Ton score final est de <strong class="text-yellow-500 text-3xl" id="final-score">0</strong> sur 20.</p>
+                <div id="end-message" class="text-xl mb-8 p-4 bg-yellow-50 rounded-xl text-yellow-700 font-medium"></div>
+                <button onclick="restartGame()" class="bg-green-500 hover:bg-green-400 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg transform transition hover:scale-105 active:scale-95">
+                    🔄 Rejouer
+                </button>
+            </div>
+        </main>
+        
+        <!-- Pied de page -->
+        <footer class="bg-slate-50 text-center py-4 text-slate-400 text-sm border-t border-slate-100">
+            Conçu pour les élèves de CE1 • Étude du Futur Simple
+        </footer>
+    </div>
+
+    <!-- Script JavaScript pour la logique de l'application -->
+    <script>
+        // --- DONNÉES DU JEU ---
+        const questions = [
+            { 
+                text: "Demain, je ______ avec mon chien.", 
+                verb: "JOUER",
+                options: ["jouerons", "jouerai", "joueras"], 
+                correctAnswer: "jouerai", 
+                explanation: "Avec 'je', la terminaison du futur est toujours <strong>-ai</strong>." 
+            },
+            { 
+                text: "Plus tard, tu ______ un grand astronaute.", 
+                verb: "ÊTRE",
+                options: ["seras", "sera", "serai"], 
+                correctAnswer: "seras", 
+                explanation: "Le verbe 'être' avec 'tu' s'écrit <strong>seras</strong> (avec un 's')." 
+            },
+            { 
+                text: "Bientôt, nous ______ des vacances.", 
+                verb: "AVOIR",
+                options: ["auront", "aurez", "aurons"], 
+                correctAnswer: "aurons", 
+                explanation: "Le verbe 'avoir' avec 'nous' s'écrit <strong>aurons</strong>." 
+            },
+            { 
+                text: "La semaine prochaine, elle ______ à la cantine.", 
+                verb: "MANGER",
+                options: ["mangeras", "mangera", "mangerai"], 
+                correctAnswer: "mangera", 
+                explanation: "Avec 'il' ou 'elle', on ajoute un <strong>-a</strong> au verbe à l'infinitif." 
+            },
+            { 
+                text: "Ce soir, vous ______ un beau film.", 
+                verb: "REGARDER",
+                options: ["regarderons", "regarderont", "regarderez"], 
+                correctAnswer: "regarderez", 
+                explanation: "Avec 'vous', la terminaison du futur est toujours <strong>-ez</strong>." 
+            },
+            { 
+                text: "Dans un an, ils ______ au CE2 !", 
+                verb: "ÊTRE",
+                options: ["seront", "serons", "serez"], 
+                correctAnswer: "seront", 
+                explanation: "Le verbe 'être' avec 'ils' (au pluriel) s'écrit <strong>seront</strong>." 
+            },
+            { 
+                text: "Demain, j' ______ un super cadeau.", 
+                verb: "AVOIR",
+                options: ["aura", "aurai", "auras"], 
+                correctAnswer: "aurai", 
+                explanation: "Le verbe 'avoir' avec 'j\'' s'écrit <strong>aurai</strong>." 
+            },
+            { 
+                text: "Les enfants ______ une belle chanson.", 
+                verb: "CHANTER",
+                options: ["chanteront", "chantera", "chanterons"], 
+                correctAnswer: "chanteront", 
+                explanation: "'Les enfants' c'est comme 'ils'. La terminaison est donc <strong>-ont</strong>." 
+            },
+            { 
+                text: "L'année prochaine, tu ______ au basket.", 
+                verb: "JOUER",
+                options: ["joueras", "jouera", "jouerai"], 
+                correctAnswer: "joueras", 
+                explanation: "Avec 'tu', n'oublie pas le <strong>-s</strong> à la fin : tu jouer<strong>as</strong>." 
+            },
+            { 
+                text: "Demain matin, le soleil ______ très fort.", 
+                verb: "BRILLER",
+                options: ["brillera", "brilleras", "brilleront"], 
+                correctAnswer: "brillera", 
+                explanation: "'Le soleil', c'est comme 'il'. La terminaison est <strong>-a</strong>." 
+            },
+            { 
+                text: "Ce week-end, nous ______ dans la forêt.", 
+                verb: "MARCHER",
+                options: ["marcherez", "marcherons", "marcheront"], 
+                correctAnswer: "marcherons", 
+                explanation: "Avec 'nous', la terminaison est toujours <strong>-ons</strong>." 
+            },
+            { 
+                text: "Plus tard, vous ______ une belle maison.", 
+                verb: "AVOIR",
+                options: ["aurez", "aurons", "auront"], 
+                correctAnswer: "aurez", 
+                explanation: "Le verbe 'avoir' avec 'vous' s'écrit <strong>aurez</strong>." 
+            },
+            { 
+                text: "Demain, je ______ un beau dessin pour maman.", 
+                verb: "DESSINER",
+                options: ["dessinera", "dessineras", "dessinerai"], 
+                correctAnswer: "dessinerai", 
+                explanation: "Avec 'je', on garde l'infinitif et on ajoute <strong>-ai</strong>." 
+            },
+            { 
+                text: "Bientôt, nous ______ très forts en conjugaison !", 
+                verb: "ÊTRE",
+                options: ["serons", "seront", "serez"], 
+                correctAnswer: "serons", 
+                explanation: "Le verbe 'être' avec 'nous' s'écrit <strong>serons</strong>." 
+            },
+            { 
+                text: "Ce soir, papa ______ une bonne soupe.", 
+                verb: "PRÉPARER",
+                options: ["prépareras", "prépareront", "préparera"], 
+                correctAnswer: "préparera", 
+                explanation: "'Papa', c'est comme 'il'. On ajoute <strong>-a</strong> au verbe à l'infinitif." 
+            },
+            { 
+                text: "Les grenouilles ______ dans la mare.", 
+                verb: "SAUTER",
+                options: ["sauteront", "sauterons", "sautera"], 
+                correctAnswer: "sauteront", 
+                explanation: "'Les grenouilles' c'est comme 'elles' (pluriel). La terminaison est <strong>-ont</strong>." 
+            },
+            { 
+                text: "Demain, tu ______ bien tes affaires.", 
+                verb: "RANGER",
+                options: ["rangerai", "rangera", "rangeras"], 
+                correctAnswer: "rangeras", 
+                explanation: "Avec 'tu', on ajoute toujours un <strong>-s</strong> à la fin !" 
+            },
+            { 
+                text: "Un jour, j' ______ un chaton.", 
+                verb: "AVOIR",
+                options: ["aurai", "aura", "auras"], 
+                correctAnswer: "aurai", 
+                explanation: "Le verbe 'avoir' avec 'j\'' s'écrit <strong>aurai</strong>." 
+            },
+            { 
+                text: "Cet hiver, vous ______ sur la glace.", 
+                verb: "GLISSER",
+                options: ["glisserez", "glisserons", "glisseront"], 
+                correctAnswer: "glisserez", 
+                explanation: "Avec 'vous', on ajoute la terminaison <strong>-ez</strong>." 
+            },
+            { 
+                text: "Dans la cour, elle ______ avec ses copines.", 
+                verb: "PARLER",
+                options: ["parleras", "parlera", "parlerai"], 
+                correctAnswer: "parlera", 
+                explanation: "Avec 'elle', la terminaison du futur est <strong>-a</strong>." 
+            }
+        ];
+
+        // --- ÉTAT DU JEU ---
+        let currentIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+        let gameQuestions = [];
+
+        // --- ÉLÉMENTS DU DOM ---
+        const tabLessonBtn = document.getElementById('tab-lesson');
+        const tabQuizBtn = document.getElementById('tab-quiz');
+        const sectionLesson = document.getElementById('section-lesson');
+        const sectionQuiz = document.getElementById('section-quiz');
+        const scoreContainer = document.getElementById('score-container');
+        const scoreDisplay = document.getElementById('score-display');
+        
+        const questionText = document.getElementById('question-text');
+        const questionHint = document.getElementById('question-hint');
+        const optionsContainer = document.getElementById('options-container');
+        const progressBar = document.getElementById('progress-bar');
+        const questionCounter = document.getElementById('question-counter');
+        
+        const feedbackContainer = document.getElementById('feedback-container');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const nextBtn = document.getElementById('next-btn');
+        
+        const gameContainer = document.getElementById('game-container');
+        const endScreen = document.getElementById('end-screen');
+        const finalScoreElem = document.getElementById('final-score');
+        const endMessageElem = document.getElementById('end-message');
+
+        // --- FONCTIONS DE NAVIGATION ---
+        function switchTab(tabName) {
+            if (tabName === 'lesson') {
+                sectionLesson.classList.remove('hidden');
+                sectionQuiz.classList.add('hidden');
+                tabLessonBtn.classList.replace('text-slate-500', 'text-sky-600');
+                tabLessonBtn.classList.replace('bg-sky-50', 'bg-white');
+                tabLessonBtn.classList.replace('border-transparent', 'border-sky-500');
+                
+                tabQuizBtn.classList.replace('text-sky-600', 'text-slate-500');
+                tabQuizBtn.classList.replace('bg-white', 'bg-sky-50');
+                tabQuizBtn.classList.replace('border-sky-500', 'border-transparent');
+            } else {
+                sectionLesson.classList.add('hidden');
+                sectionQuiz.classList.remove('hidden');
+                scoreContainer.classList.remove('hidden'); // Afficher le score
+                
+                tabQuizBtn.classList.replace('text-slate-500', 'text-sky-600');
+                tabQuizBtn.classList.replace('bg-sky-50', 'bg-white');
+                tabQuizBtn.classList.replace('border-transparent', 'border-sky-500');
+                
+                tabLessonBtn.classList.replace('text-sky-600', 'text-slate-500');
+                tabLessonBtn.classList.replace('bg-white', 'bg-sky-50');
+                tabLessonBtn.classList.replace('border-sky-500', 'border-transparent');
+
+                if(currentIndex === 0 && score === 0 && !isAnswered && gameQuestions.length === 0) {
+                    // Mélange les 20 questions au début du jeu
+                    gameQuestions = [...questions].sort(() => Math.random() - 0.5);
+                    loadQuestion();
+                }
+            }
+        }
+
+        // --- LOGIQUE DU JEU ---
+        function loadQuestion() {
+            isAnswered = false;
+            feedbackContainer.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            optionsContainer.innerHTML = ''; // Nettoyer les options
+            
+            const q = gameQuestions[currentIndex];
+            
+            // Mettre à jour l'UI de la progression
+            questionCounter.innerText = `Question ${currentIndex + 1} sur ${gameQuestions.length}`;
+            progressBar.style.width = `${((currentIndex + 1) / gameQuestions.length) * 100}%`;
+            
+            // Afficher le texte (avec le trou)
+            questionText.innerHTML = q.text.replace('______', `<span class="inline-block min-w-[100px] border-b-4 border-dashed border-sky-300 text-sky-400">...</span>`);
+            questionHint.innerText = `(Verbe ${q.verb})`;
+
+            // Mélanger les options pour éviter que la bonne réponse soit toujours au même endroit
+            const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+            // Créer les boutons
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.innerText = option;
+                button.className = "btn-option bg-sky-50 border-2 border-sky-200 text-sky-700 font-bold text-2xl py-6 px-4 rounded-xl hover:bg-sky-100 hover:border-sky-300 focus:outline-none";
+                button.onclick = () => checkAnswer(option, button);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedAnswer, buttonElement) {
+            if (isAnswered) return; // Empêcher les clics multiples
+            isAnswered = true;
+
+            const q = gameQuestions[currentIndex];
+            const isCorrect = (selectedAnswer === q.correctAnswer);
+
+            // Désactiver tous les boutons
+            const allButtons = optionsContainer.querySelectorAll('button');
+            allButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+                // Surligner la bonne réponse de toute façon
+                if(btn.innerText === q.correctAnswer) {
+                     btn.classList.remove('bg-sky-50', 'border-sky-200', 'text-sky-700', 'opacity-70');
+                     btn.classList.add('correct-answer');
+                }
+            });
+
+            if (isCorrect) {
+                score++;
+                scoreDisplay.innerText = score;
+                // Animation de succès
+                feedbackIcon.innerText = "🎉";
+                feedbackTitle.innerText = "Bravo !";
+                feedbackTitle.className = "text-3xl font-bold mb-2 text-green-600";
+                feedbackContainer.className = "mt-8 p-6 rounded-2xl text-center border-4 border-green-400 bg-green-50 animate-bounce-short";
+            } else {
+                // Style d'erreur
+                buttonElement.classList.remove('bg-sky-50', 'border-sky-200', 'text-sky-700');
+                buttonElement.classList.add('wrong-answer');
+                
+                feedbackIcon.innerText = "🤔";
+                feedbackTitle.innerText = "Presque !";
+                feedbackTitle.className = "text-3xl font-bold mb-2 text-red-500";
+                feedbackContainer.className = "mt-8 p-6 rounded-2xl text-center border-4 border-red-400 bg-red-50";
+            }
+
+            // Afficher l'explication et remplacer le trou dans la phrase
+            questionText.innerHTML = q.text.replace('______', `<span class="${isCorrect ? 'text-green-500' : 'text-red-500'} font-bold underline">${q.correctAnswer}</span>`);
+            feedbackMessage.innerHTML = q.explanation;
+            
+            // Changer le texte du bouton si c'est la dernière question
+            if(currentIndex === gameQuestions.length - 1) {
+                nextBtn.innerText = "Voir mon score ! 🏆";
+                nextBtn.classList.replace('bg-sky-500', 'bg-yellow-500');
+                nextBtn.classList.replace('hover:bg-sky-400', 'hover:bg-yellow-400');
+            }
+
+            // Afficher la zone de feedback
+            feedbackContainer.classList.remove('hidden');
+            feedbackContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            
+            if (currentIndex < gameQuestions.length) {
+                loadQuestion();
+            } else {
+                showEndScreen();
+            }
+        }
+
+        function showEndScreen() {
+            gameContainer.classList.add('hidden');
+            feedbackContainer.classList.add('hidden');
+            document.querySelector('.mb-8').classList.add('hidden'); // Cacher la barre de progression
+            
+            endScreen.classList.remove('hidden');
+            finalScoreElem.innerText = score;
+
+            if(score === gameQuestions.length) {
+                endMessageElem.innerHTML = "Incroyable ! Tu es un champion du futur simple ! 🌟👑";
+                endMessageElem.className = "text-xl mb-8 p-4 bg-green-100 border-2 border-green-400 rounded-xl text-green-700 font-bold";
+            } else if (score >= gameQuestions.length / 2) {
+                endMessageElem.innerHTML = "C'est un très bon score ! Tu as bien compris la leçon. 👍";
+            } else {
+                endMessageElem.innerHTML = "Tu as fait des efforts ! N'hésite pas à relire 📖 <strong>Ma Leçon</strong> avant de rejouer.";
+            }
+        }
+
+        function restartGame() {
+            currentIndex = 0;
+            score = 0;
+            scoreDisplay.innerText = "0";
+            
+            // Mélanger les questions à nouveau
+            gameQuestions = [...questions].sort(() => Math.random() - 0.5);
+            
+            // Remise à zéro UI
+            endScreen.classList.add('hidden');
+            document.querySelector('.mb-8').classList.remove('hidden');
+            
+            // Remettre le bouton Suivant à sa couleur par défaut
+            nextBtn.innerText = "Question suivante ➡️";
+            nextBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+            nextBtn.classList.add('bg-sky-500', 'hover:bg-sky-400');
+            
+            loadQuestion();
+        }
+
+        // Initialisation silencieuse (le jeu commencera quand on cliquera sur l'onglet)
+    </script>
+</body>
+</html>
