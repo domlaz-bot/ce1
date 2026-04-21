@@ -1,0 +1,421 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maths CE1 - La droite graduée</title>
+    <!-- Tailwind CSS pour le style rapide et responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Police Google "Fredoka" pour un style rond et enfantin -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Styles personnalisés pour le côté cartoon et le dessin de la droite */
+        body {
+            font-family: 'Fredoka', sans-serif;
+            /* Fond ciel stylisé */
+            background-color: #87CEEB;
+            background-image: radial-gradient(circle at 50% 50%, #bae6fd 0%, #38bdf8 100%);
+            touch-action: manipulation; /* Optimisation pour tablettes */
+        }
+
+        /* Conteneur de la droite graduée */
+        .number-line {
+            position: relative;
+            height: 140px;
+            width: 100%;
+            margin: 40px 0;
+        }
+
+        /* L'axe principal */
+        .line-track {
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            right: 5%;
+            height: 8px;
+            background: #1e40af;
+            transform: translateY(-50%);
+            border-radius: 4px;
+            box-shadow: 0 4px 0 #1e3a8a;
+        }
+
+        /* Les petites barres (graduations) */
+        .tick {
+            position: absolute;
+            top: 50%;
+            width: 6px;
+            height: 30px;
+            background: #1e40af;
+            transform: translate(-50%, -50%);
+            border-radius: 3px;
+        }
+
+        /* Les étiquettes des nombres existants */
+        .tick-label {
+            position: absolute;
+            top: calc(50% + 25px);
+            left: 0;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            text-shadow: 1px 1px 0px white, -1px -1px 0px white, 1px -1px 0px white, -1px 1px 0px white;
+        }
+
+        /* Les cases à remplir (trous) */
+        .hole-input {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translate(-50%, -50%);
+            width: 5rem;
+            height: 4rem;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            border-radius: 1rem;
+            border: 4px solid #fcd34d;
+            background: #fff;
+            z-index: 10;
+            box-shadow: 0 6px 0 #d97706;
+            color: #333;
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Masquer les flèches du champ number pour un aspect plus propre */
+        .hole-input::-webkit-outer-spin-button,
+        .hole-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .hole-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .hole-input:focus {
+            border-color: #f59e0b;
+            transform: translate(-50%, -55%);
+            box-shadow: 0 10px 0 #d97706;
+        }
+
+        /* Feedback visuel immédiat dans l'input */
+        .hole-input.correct {
+            border-color: #22c55e;
+            background: #dcfce7;
+            color: #15803d;
+            box-shadow: 0 6px 0 #166534;
+        }
+
+        .hole-input.error {
+            border-color: #ef4444;
+            background: #fee2e2;
+            color: #b91c1c;
+            box-shadow: 0 6px 0 #991b1b;
+            animation: shake 0.5s;
+        }
+
+        /* Animation de secousse pour les erreurs */
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%); }
+            20% { transform: translate(calc(-50% - 8px), -50%); }
+            40% { transform: translate(calc(-50% + 8px), -50%); }
+            60% { transform: translate(calc(-50% - 4px), -50%); }
+            80% { transform: translate(calc(-50% + 4px), -50%); }
+        }
+
+        /* Effet bouton cartoon */
+        .btn-cartoon {
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn-cartoon:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 transparent !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- En-tête avec progression -->
+    <div class="w-full max-w-4xl mb-4 flex justify-between items-center bg-white/50 rounded-2xl p-4 shadow-sm border-2 border-white">
+        <div class="flex items-center gap-3">
+            <span class="text-4xl" id="mascot">🦊</span>
+            <div>
+                <h1 class="text-2xl font-bold text-blue-900">Mission : Droite Graduée</h1>
+                <p class="text-blue-700 font-medium">Aide le renard à retrouver les nombres cachés !</p>
+            </div>
+        </div>
+        <div class="text-xl font-bold text-blue-800 bg-white px-4 py-2 rounded-xl shadow-inner">
+            Niveau <span id="level-indicator">1</span> / <span id="total-levels">5</span>
+        </div>
+    </div>
+
+    <!-- Zone de jeu principale -->
+    <div class="bg-white/95 backdrop-blur rounded-[2rem] shadow-2xl border-8 border-white p-8 w-full max-w-4xl flex flex-col items-center">
+        
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-8" id="instruction">
+            Observe bien et trouve les nombres manquants.
+        </h2>
+
+        <!-- Le conteneur où la droite sera générée en JavaScript -->
+        <div id="number-line-container" class="number-line">
+            <!-- La droite est injectée ici -->
+        </div>
+
+        <!-- Zone de feedback et boutons -->
+        <div class="mt-8 flex flex-col items-center gap-6 w-full">
+            
+            <div id="feedback-message" class="text-2xl font-bold h-8 text-center transition-all">
+                <!-- Les messages de réussite ou d'erreur s'afficheront ici -->
+            </div>
+
+            <div class="flex gap-4">
+                <button id="btn-hint" onclick="showHint()" 
+                        class="btn-cartoon bg-blue-200 hover:bg-blue-300 text-blue-900 text-xl font-bold py-4 px-6 rounded-2xl border-4 border-blue-400 shadow-[0_8px_0_#60a5fa]">
+                    Indice 💡
+                </button>
+
+                <button id="btn-check" onclick="checkAnswers()" 
+                        class="btn-cartoon bg-yellow-400 hover:bg-yellow-300 text-yellow-900 text-2xl font-bold py-4 px-10 rounded-2xl border-4 border-yellow-500 shadow-[0_8px_0_#d97706]">
+                    Vérifier
+                </button>
+
+                <button id="btn-next" onclick="nextLevel()" 
+                        class="hidden btn-cartoon bg-green-400 hover:bg-green-300 text-green-900 text-2xl font-bold py-4 px-10 rounded-2xl border-4 border-green-500 shadow-[0_8px_0_#166534] flex items-center gap-2">
+                    Suivant <span class="text-3xl">➡️</span>
+                </button>
+            </div>
+
+            <!-- Bouton recommencer (caché par défaut) -->
+            <button id="btn-restart" onclick="restartGame()" 
+                    class="hidden btn-cartoon bg-blue-400 hover:bg-blue-300 text-blue-900 text-2xl font-bold py-4 px-10 rounded-2xl border-4 border-blue-500 shadow-[0_8px_0_#1d4ed8]">
+                Rejouer 🔄
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Script de logique pédagogique -->
+    <script>
+        // --- 1. CONFIGURATION DES NIVEAUX (Progression Pédagogique) ---
+        // min: début, max: fin, step: pas, missing: les nombres à cacher
+        const levels = [
+            { min: 0, max: 20, step: 2, missing: [6, 14] },
+            { min: 0, max: 50, step: 5, missing: [15, 35] },
+            { min: 0, max: 100, step: 10, missing: [40, 80] },
+            { min: 0, max: 1000, step: 100, missing: [300, 700] },
+            { min: 400, max: 500, step: 10, missing: [420, 480] }
+        ];
+
+        let currentLevelIndex = 0;
+
+        // --- 2. FONCTIONS D'AFFICHAGE ---
+        
+        function initGame() {
+            document.getElementById('total-levels').textContent = levels.length;
+            renderLevel();
+        }
+
+        function renderLevel() {
+            const level = levels[currentLevelIndex];
+            document.getElementById('level-indicator').textContent = currentLevelIndex + 1;
+            
+            const container = document.getElementById('number-line-container');
+            // Réinitialiser le conteneur en gardant l'axe
+            container.innerHTML = '<div class="line-track"></div>';
+
+            // Création des graduations
+            const range = level.max - level.min;
+            
+            for (let i = level.min; i <= level.max; i += level.step) {
+                // Calcul de la position en pourcentage (laissant 5% de marge de chaque côté pour le design)
+                const percentage = 5 + ((i - level.min) / range) * 90;
+
+                // Ajouter la barre de graduation
+                const tick = document.createElement('div');
+                tick.className = 'tick';
+                tick.style.left = `${percentage}%`;
+                container.appendChild(tick);
+
+                if (level.missing.includes(i)) {
+                    // Si le nombre doit être deviné -> Champ de saisie
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.inputMode = 'numeric'; // Ouvre le clavier numérique sur tablette
+                    input.className = 'hole-input';
+                    input.style.left = `${percentage}%`;
+                    input.dataset.answer = i; // Stocke la bonne réponse
+                    input.setAttribute('aria-label', `Trouve le nombre manquant à cette place`);
+                    
+                    // Permet de valider en appuyant sur "Entrée"
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') checkAnswers();
+                    });
+
+                    container.appendChild(input);
+                } else if (i === level.min || i === level.max) {
+                    // N'afficher le texte QUE pour les extrémités (min et max)
+                    const label = document.createElement('div');
+                    label.className = 'tick-label';
+                    label.style.left = `${percentage}%`;
+                    label.textContent = i;
+                    container.appendChild(label);
+                }
+            }
+
+            // Réinitialiser les UI (boutons, messages)
+            document.getElementById('feedback-message').textContent = "";
+            document.getElementById('btn-check').classList.remove('hidden');
+            document.getElementById('btn-hint').classList.remove('hidden');
+            document.getElementById('btn-hint').disabled = false;
+            document.getElementById('btn-hint').classList.remove('opacity-50');
+            document.getElementById('btn-next').classList.add('hidden');
+            document.getElementById('mascot').textContent = "🦊";
+            
+            // Focus sur le premier input
+            const firstInput = document.querySelector('.hole-input');
+            if(firstInput) firstInput.focus();
+        }
+
+        // --- NOUVELLE FONCTION : INDICE ---
+        function showHint() {
+            const level = levels[currentLevelIndex];
+            const feedback = document.getElementById('feedback-message');
+            feedback.textContent = `💡 Indice : on avance de ${level.step} en ${level.step}.`;
+            feedback.className = "text-2xl font-bold text-blue-600 h-8 animate-pulse";
+            
+            // Désactiver le bouton indice après utilisation
+            const btnHint = document.getElementById('btn-hint');
+            btnHint.disabled = true;
+            btnHint.classList.add('opacity-50');
+        }
+
+        // --- 3. LOGIQUE DE VALIDATION ---
+        
+        function checkAnswers() {
+            const inputs = document.querySelectorAll('.hole-input');
+            let allCorrect = true;
+            let hasEmpty = false;
+
+            inputs.forEach(input => {
+                // Ignorer les inputs déjà validés
+                if (input.disabled) return; 
+
+                const correctAnswer = parseInt(input.dataset.answer);
+                const userAnswer = parseInt(input.value);
+
+                // Réinitialiser les animations/classes
+                input.classList.remove('correct', 'error');
+                void input.offsetWidth; // Force le reflow pour que l'animation de secousse puisse rejouer
+
+                if (isNaN(userAnswer)) {
+                    hasEmpty = true;
+                    allCorrect = false;
+                    input.classList.add('error');
+                } else if (userAnswer === correctAnswer) {
+                    input.classList.add('correct');
+                    input.disabled = true; // Verrouille la bonne réponse pour encourager l'élève
+                } else {
+                    input.classList.add('error');
+                    allCorrect = false;
+                }
+            });
+
+            // Gestion du Feedback visuel et textuel
+            const feedback = document.getElementById('feedback-message');
+            const mascot = document.getElementById('mascot');
+
+            if (allCorrect) {
+                feedback.textContent = "Bravo ! C'est parfait ! 🎉";
+                feedback.className = "text-2xl font-bold text-green-600 animate-bounce h-8";
+                mascot.textContent = "🥳";
+                document.getElementById('btn-check').classList.add('hidden');
+                document.getElementById('btn-hint').classList.add('hidden');
+                document.getElementById('btn-next').classList.remove('hidden');
+                confettiEffect(); // Petite récompense visuelle
+            } else if (hasEmpty) {
+                feedback.textContent = "Il manque des nombres ! 🧐";
+                feedback.className = "text-2xl font-bold text-orange-500 h-8";
+                mascot.textContent = "🦊";
+            } else {
+                feedback.textContent = "Oups, il y a des erreurs. Essaie encore ! 💪";
+                feedback.className = "text-2xl font-bold text-red-500 h-8";
+                mascot.textContent = "🤔";
+            }
+        }
+
+        function nextLevel() {
+            currentLevelIndex++;
+            if (currentLevelIndex < levels.length) {
+                renderLevel();
+            } else {
+                showEndScreen();
+            }
+        }
+
+        function showEndScreen() {
+            const container = document.getElementById('number-line-container');
+            container.innerHTML = `
+                <div class="text-center animate-bounce">
+                    <div class="text-6xl mb-4">🏆</div>
+                    <h2 class="text-4xl font-bold text-yellow-500">Mission accomplie !</h2>
+                    <p class="text-xl text-gray-600 mt-2">Tu es un champion des mathématiques !</p>
+                </div>
+            `;
+            document.getElementById('instruction').textContent = "";
+            document.getElementById('feedback-message').textContent = "";
+            document.getElementById('btn-next').classList.add('hidden');
+            document.getElementById('btn-hint').classList.add('hidden');
+            document.getElementById('btn-restart').classList.remove('hidden');
+            document.getElementById('mascot').textContent = "👑";
+            for(let i=0; i<5; i++) setTimeout(confettiEffect, i*300);
+        }
+
+        function restartGame() {
+            currentLevelIndex = 0;
+            document.getElementById('btn-restart').classList.add('hidden');
+            initGame();
+        }
+
+        // --- 4. EFFET LUDIQUE (Confettis sans librairie externe) ---
+        function confettiEffect() {
+            const colors = ['#fcd34d', '#34d399', '#60a5fa', '#f472b6', '#a78bfa'];
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.pointerEvents = 'none';
+                confetti.style.zIndex = '9999';
+                
+                // Animation de chute
+                const duration = Math.random() * 2 + 1;
+                confetti.style.transition = `top ${duration}s ease-in, transform ${duration}s linear`;
+                
+                document.body.appendChild(confetti);
+                
+                // Déclencher le mouvement
+                setTimeout(() => {
+                    confetti.style.top = '100vh';
+                    confetti.style.transform = `rotate(${Math.random() * 360 * 5}deg)`;
+                }, 10);
+
+                // Nettoyage
+                setTimeout(() => {
+                    confetti.remove();
+                }, duration * 1000);
+            }
+        }
+
+        // --- INITIALISATION ---
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>

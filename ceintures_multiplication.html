@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu des Multiplications - Automatisation</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Police enfantine et lisible -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff;
+            background-image: radial-gradient(#bae6fd 2px, transparent 2px);
+            background-size: 30px 30px;
+            user-select: none;
+        }
+        
+        .btn-option {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-option:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+        }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); color: #ef4444; }
+            50% { transform: scale(1.1); color: #991b1b; }
+        }
+        .timer-warning { animation: pulse-red 1s infinite; }
+
+        .confetti {
+            position: fixed; width: 10px; height: 10px; z-index: 1000; pointer-events: none;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* Personnalisation de la scrollbar pour l'accueil */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- ================= PAGE D'ACCUEIL ================= -->
+    <div id="home-screen" class="w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl border-4 border-sky-300 overflow-hidden relative flex flex-col max-h-[90vh]">
+        <div class="p-8 pb-4 text-center shrink-0">
+            <h1 class="text-4xl md:text-5xl font-black text-sky-900 mb-2 animate-pop">Défi Chrono ⏱️</h1>
+            <p class="text-lg text-gray-600 font-bold">1 minute pour valider ta ceinture. Prêt(e) ?</p>
+        </div>
+
+        <div class="px-8 py-2 overflow-y-auto grow">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="belts-list-preview">
+                <!-- Généré dynamiquement -->
+            </div>
+        </div>
+
+        <div class="p-8 pt-4 shrink-0 bg-white border-t border-gray-100">
+            <div class="flex flex-col gap-3">
+                <button onclick="startPractice()" id="btn-practice" class="w-full py-4 bg-sky-100 hover:bg-sky-200 text-sky-800 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl sm:text-2xl border-b-4 border-sky-300 flex items-center justify-center gap-2">
+                    🧠 S'entraîner sans stress
+                </button>
+                <button onclick="startTest()" id="btn-start" class="w-full py-4 bg-green-400 hover:bg-green-500 text-green-900 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl sm:text-2xl border-b-4 border-green-600 flex items-center justify-center gap-2">
+                    ⏱️ Passer le test (1 min)
+                </button>
+                <button onclick="hardReset()" id="btn-reset" class="hidden w-full py-3 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-colors text-lg">
+                    🔄 Recommencer à zéro
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ÉCRAN DE JEU ================= -->
+    <main id="game-screen" class="hidden w-full max-w-lg bg-white rounded-[2rem] shadow-2xl border-4 border-sky-300 overflow-hidden relative">
+        
+        <button onclick="goHome()" class="absolute top-4 left-4 z-10 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-xl shadow hover:bg-white hover:scale-110 transition-all">
+            🏠
+        </button>
+
+        <!-- En-tête : Ceinture et Timer -->
+        <header id="header-bg" class="pt-6 pb-4 px-6 text-center text-gray-800 transition-colors duration-500 bg-gray-100">
+            <h1 class="text-2xl font-black mb-1 flex justify-center items-center gap-2">
+                <span id="belt-icon">🤍</span> 
+                <span id="belt-name">Ceinture Blanche</span>
+            </h1>
+            <p class="text-sm font-bold opacity-90 mb-4" id="belt-instruction">Tables de 2 et 10</p>
+            
+            <!-- Compte à rebours -->
+            <div class="bg-white/50 rounded-2xl p-2 inline-block shadow-inner backdrop-blur">
+                <div class="text-4xl font-black tracking-widest text-gray-800" id="timer-display">
+                    01:00
+                </div>
+            </div>
+        </header>
+
+        <!-- Zone de progression -->
+        <div class="px-6 py-4 bg-gray-50 border-y-2 border-gray-100">
+            <div class="flex justify-between text-sm font-black text-gray-500 mb-2">
+                <span>Progression</span>
+                <span id="score-text">0 / 8 réussis</span>
+            </div>
+            <div class="h-4 w-full bg-gray-200 rounded-full overflow-hidden shadow-inner">
+                <div id="progress-bar" class="h-full bg-green-400 transition-all duration-300 w-0"></div>
+            </div>
+        </div>
+
+        <!-- Zone de la question -->
+        <div class="p-8 text-center min-h-[300px] flex flex-col justify-center">
+            <div class="text-5xl sm:text-6xl font-black text-sky-900 mb-8 tracking-wider" id="question-text">
+                2 x 3 = ?
+            </div>
+
+            <div class="grid grid-cols-2 gap-4" id="options-grid">
+                <!-- Boutons générés en JS -->
+            </div>
+        </div>
+
+        <!-- Feedback -->
+        <div id="feedback-zone" class="absolute bottom-0 left-0 w-full p-4 transform translate-y-full transition-transform duration-300">
+            <div id="feedback-msg" class="rounded-2xl p-4 text-center font-bold text-xl shadow-lg"></div>
+        </div>
+    </main>
+
+    <!-- Modal Temps Écoulé -->
+    <div id="timeout-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-pop border-4 border-red-400 relative overflow-hidden">
+            <div class="text-6xl mb-4">⏳</div>
+            <h2 class="text-3xl font-black text-gray-800 mb-2">Temps écoulé !</h2>
+            <p class="text-lg text-gray-600 font-bold mb-6">Tu as réussi <span id="timeout-score" class="text-red-500 text-xl"></span> calculs.<br>Il t'en faut <span id="timeout-target" class="text-sky-600"></span> pour valider.</p>
+            <button onclick="retryBelt()" class="w-full py-4 bg-red-400 hover:bg-red-500 text-white font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
+                Réessayer 🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de passage de niveau -->
+    <div id="level-up-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-pop border-4 border-yellow-400 relative overflow-hidden">
+            <div class="text-6xl mb-4">🎉</div>
+            <h2 class="text-3xl font-black text-gray-800 mb-2">Cible atteinte !</h2>
+            <p class="text-lg text-gray-600 font-bold mb-6">Bravo, tu débloques la <br><span id="new-belt-name" class="text-xl">Ceinture Jaune</span> !</p>
+            <button onclick="startNextBelt()" class="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
+                Continuer 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de fin de jeu -->
+    <div id="victory-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl animate-pop border-8 border-gray-800 relative overflow-hidden">
+            <div class="text-7xl mb-4">🏆🥷</div>
+            <h2 class="text-4xl font-black text-gray-800 mb-4">MAÎTRE ABSOLU !</h2>
+            <p class="text-xl text-gray-600 font-bold mb-6">Tu as vaincu le chronomètre et obtenu la Ceinture Noire !</p>
+            <button onclick="hardReset()" class="w-full py-4 bg-sky-500 hover:bg-sky-600 text-white font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
+                Recommencer l'aventure 🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Fin d'entraînement -->
+    <div id="practice-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-pop border-4 border-sky-400 relative overflow-hidden">
+            <div class="text-6xl mb-4">🧠✨</div>
+            <h2 class="text-3xl font-black text-gray-800 mb-2">Super entraînement !</h2>
+            <p class="text-lg text-gray-600 font-bold mb-6">Tu as bien révisé ta ceinture. Es-tu prêt(e) pour le défi chronométré ?</p>
+            <div class="flex flex-col gap-3">
+                <button onclick="startTestFromPractice()" class="w-full py-4 bg-green-400 hover:bg-green-500 text-green-900 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
+                    ⏱️ Lancer le test !
+                </button>
+                <button onclick="goHome()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors text-lg">
+                    🏠 Retour à l'accueil
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === DONNÉES PÉDAGOGIQUES ===
+        const belts = [
+            { name: "Ceinture Blanche",    tables: [2, 10], type: "mult", target: 8,  colorClass: "bg-white",          badgeColor: "bg-white border-gray-300 text-gray-800", textColor: "text-gray-800", icon: "🤍", desc: "Tables de 2 et 10" },
+            { name: "Ceinture Jaune",      tables: [2, 5, 10], type: "mult", target: 8,  colorClass: "bg-yellow-200",     badgeColor: "bg-yellow-200 border-yellow-400 text-yellow-900", textColor: "text-yellow-900", icon: "💛", desc: "Tables de 2, 5, 10" },
+            { name: "Ceinture Orange",     tables: [2, 3, 5, 10], type: "mult", target: 8,  colorClass: "bg-orange-300",     badgeColor: "bg-orange-300 border-orange-500 text-orange-900", textColor: "text-orange-900", icon: "🧡", desc: "Tables de 2, 3, 5, 10" },
+            { name: "Ceinture Rose",       tables: [2, 3, 4, 5, 10], type: "mult", target: 10, colorClass: "bg-pink-300",       badgeColor: "bg-pink-300 border-pink-400 text-pink-900", textColor: "text-pink-900", icon: "🩷", desc: "Tables de 2, 3, 4, 5, 10" },
+            { name: "Ceinture Vert Clair", tables: [2, 3, 4, 5, 6, 10], type: "mult", target: 12, colorClass: "bg-green-300",      badgeColor: "bg-green-300 border-green-400 text-green-900", textColor: "text-green-900", icon: "🍏", desc: "Tables jusqu'à 6 (+10)" },
+            { name: "Ceinture Vert Foncé", tables: [2, 3, 4, 5, 6, 7, 10], type: "mult", target: 15, colorClass: "bg-green-600",      badgeColor: "bg-green-600 border-green-700 text-white", textColor: "text-white", icon: "🟩", desc: "Tables jusqu'à 7 (+10)" },
+            { name: "Ceinture Bleu Clair", tables: [2, 3, 4, 5, 6, 7, 8, 10], type: "mult", target: 18, colorClass: "bg-blue-300",       badgeColor: "bg-blue-300 border-blue-400 text-blue-900", textColor: "text-blue-900", icon: "🩵", desc: "Tables jusqu'à 8 (+10)" },
+            { name: "Ceinture Bleu Foncé", tables: [2, 3, 4, 5, 6, 7, 8, 9, 10], type: "mult", target: 20, colorClass: "bg-blue-600",       badgeColor: "bg-blue-600 border-blue-700 text-white", textColor: "text-white", icon: "🟦", desc: "Toutes les tables (1-10)" },
+            { name: "Ceinture Mauve",      tables: [2, 3, 4, 5, 6, 7, 8, 9], type: "div", target: 10, colorClass: "bg-purple-400",     badgeColor: "bg-purple-400 border-purple-500 text-white", textColor: "text-white", icon: "🪻", desc: "Divisions exactes" },
+            { name: "Ceinture Violette",   tables: [], type: "euclidian_easy", target: 6, colorClass: "bg-fuchsia-600",    badgeColor: "bg-fuchsia-600 border-fuchsia-700 text-white", textColor: "text-white", icon: "💜", desc: "Divisions euclidiennes (simples)" },
+            { name: "Ceinture Marron",     tables: [], type: "euclidian_hard", target: 8, colorClass: "bg-amber-800",      badgeColor: "bg-amber-800 border-amber-900 text-white", textColor: "text-white", icon: "🤎", desc: "Divisions euclidiennes (complexes)" },
+            { name: "Ceinture Noire",      tables: [], type: "hardcore", target: 20, colorClass: "bg-gray-800",       badgeColor: "bg-gray-800 border-gray-900 text-white", textColor: "text-white", icon: "🖤", desc: "Tables 6-9, 11 et 12" }
+        ];
+
+        // === ÉTAT DU JEU ===
+        let currentBeltIndex = 0;
+        let currentScore = 0;
+        let currentQuestion = {};
+        let isFirstTry = true;
+        let isWaiting = false;
+        let isPracticeMode = false;
+        
+        let timeLeft = 60;
+        let timerInterval;
+        const SAVE_KEY = "multiplications_chrono_save";
+
+        // === ÉLÉMENTS DU DOM ===
+        const homeScreen = document.getElementById('home-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const btnStart = document.getElementById('btn-start');
+        const btnReset = document.getElementById('btn-reset');
+        const beltsListPreview = document.getElementById('belts-list-preview');
+
+        const headerBg = document.getElementById('header-bg');
+        const beltNameEl = document.getElementById('belt-name');
+        const beltIconEl = document.getElementById('belt-icon');
+        const beltInstructionEl = document.getElementById('belt-instruction');
+        
+        const timerDisplay = document.getElementById('timer-display');
+        const scoreText = document.getElementById('score-text');
+        const progressBar = document.getElementById('progress-bar');
+        
+        const questionText = document.getElementById('question-text');
+        const optionsGrid = document.getElementById('options-grid');
+        const feedbackZone = document.getElementById('feedback-zone');
+        const feedbackMsg = document.getElementById('feedback-msg');
+        
+        const timeoutModal = document.getElementById('timeout-modal');
+        const timeoutScore = document.getElementById('timeout-score');
+        const timeoutTarget = document.getElementById('timeout-target');
+
+        const levelUpModal = document.getElementById('level-up-modal');
+        const newBeltNameEl = document.getElementById('new-belt-name');
+        const victoryModal = document.getElementById('victory-modal');
+        const practiceModal = document.getElementById('practice-modal');
+
+        // === INITIALISATION ===
+        function initApp() {
+            generateHomeBelts();
+            loadProgress();
+        }
+
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem(SAVE_KEY);
+                if (saved) {
+                    currentBeltIndex = parseInt(saved, 10);
+                    if (currentBeltIndex > 0) {
+                        btnStart.innerHTML = `⏱️ Continuer le test <br><span class="text-sm font-normal">(${belts[currentBeltIndex].name})</span>`;
+                        btnReset.classList.remove('hidden');
+                    }
+                }
+            } catch (e) { console.warn("Erreur de lecture de sauvegarde."); }
+        }
+
+        function saveProgress() {
+            try { localStorage.setItem(SAVE_KEY, currentBeltIndex); } 
+            catch (e) { console.warn("Erreur de sauvegarde."); }
+        }
+
+        function hardReset() {
+            if(confirm("Veux-tu vraiment effacer toute ta progression ?")) {
+                currentBeltIndex = 0;
+                saveProgress();
+                btnStart.innerHTML = "Jouer 🚀";
+                btnReset.classList.add('hidden');
+                victoryModal.classList.add('hidden');
+                goHome();
+            }
+        }
+
+        function generateHomeBelts() {
+            beltsListPreview.innerHTML = '';
+            belts.forEach((belt, idx) => {
+                const div = document.createElement('div');
+                const isLocked = currentBeltIndex < idx;
+                const opacity = isLocked ? 'opacity-60 grayscale' : '';
+                
+                div.className = `flex items-center gap-3 p-3 rounded-xl border-2 shadow-sm ${belt.badgeColor} ${opacity}`;
+                div.innerHTML = `
+                    <span class="text-2xl">${isLocked ? '🔒' : belt.icon}</span>
+                    <div class="flex-1">
+                        <div class="font-black text-sm uppercase tracking-wide leading-tight">${belt.name}</div>
+                        <div class="text-[10px] sm:text-xs font-bold opacity-90">${belt.desc}</div>
+                    </div>
+                    <div class="text-center shrink-0">
+                        <div class="text-lg font-black">${belt.target}</div>
+                        <div class="text-[9px] uppercase font-bold opacity-80">en 1 min</div>
+                    </div>
+                `;
+                beltsListPreview.appendChild(div);
+            });
+        }
+
+        // === NAVIGATION ===
+        function startPractice() {
+            isPracticeMode = true;
+            homeScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            practiceModal.classList.add('hidden');
+            startLevel();
+        }
+
+        function startTest() {
+            isPracticeMode = false;
+            homeScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            startLevel();
+        }
+
+        function startTestFromPractice() {
+            practiceModal.classList.add('hidden');
+            startTest();
+        }
+
+        function startGame() {
+            startTest();
+        }
+
+        function goHome() {
+            clearInterval(timerInterval);
+            gameScreen.classList.add('hidden');
+            homeScreen.classList.remove('hidden');
+            practiceModal.classList.add('hidden');
+            generateHomeBelts(); // Met à jour les cadenas
+            loadProgress();
+        }
+
+        // === LOGIQUE DE JEU PRINCIPALE ===
+        function startLevel() {
+            currentScore = 0;
+            timeLeft = 60;
+            isWaiting = false;
+            
+            updateBeltUI();
+            updateScoreUI();
+            updateTimerUI();
+            
+            clearInterval(timerInterval);
+            if (!isPracticeMode) {
+                timerInterval = setInterval(gameTick, 1000);
+            }
+            
+            generateQuestion();
+        }
+
+        function gameTick() {
+            timeLeft--;
+            updateTimerUI();
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                handleTimeout();
+            }
+        }
+
+        function handleTimeout() {
+            isWaiting = true;
+            timeoutScore.textContent = currentScore;
+            timeoutTarget.textContent = belts[currentBeltIndex].target;
+            timeoutModal.classList.remove('hidden');
+        }
+
+        function retryBelt() {
+            timeoutModal.classList.add('hidden');
+            startLevel();
+        }
+
+        // === GÉNÉRATEUR DE QUESTIONS ===
+        function generateQuestion() {
+            isFirstTry = true;
+            isWaiting = false;
+            const belt = belts[currentBeltIndex];
+            
+            let qText = "";
+            let correctAns = null;
+            let optionsSet = new Set();
+            
+            if (belt.type === "mult") {
+                const table = belt.tables[Math.floor(Math.random() * belt.tables.length)];
+                const multiplier = Math.floor(Math.random() * 10) + 1;
+                correctAns = table * multiplier;
+                qText = `${table} x ${multiplier} = ?`;
+                
+                optionsSet.add(correctAns);
+                while(optionsSet.size < 4) {
+                    let w = correctAns + (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? table : -1);
+                    if (w > 0) optionsSet.add(w);
+                }
+
+            } else if (belt.type === "div") {
+                const divisor = belt.tables[Math.floor(Math.random() * belt.tables.length)];
+                const quotient = Math.floor(Math.random() * 9) + 2; // 2 à 10
+                const dividend = divisor * quotient;
+                correctAns = quotient;
+                qText = `${dividend} : ${divisor} = ?`;
+                
+                optionsSet.add(correctAns);
+                while(optionsSet.size < 4) {
+                    let w = correctAns + Math.floor(Math.random() * 5) - 2;
+                    if (w > 0 && w !== correctAns) optionsSet.add(w);
+                }
+
+            } else if (belt.type.startsWith("euclidian")) {
+                let d, q;
+                if (belt.type === "euclidian_easy") {
+                    d = Math.floor(Math.random() * 5) + 3; // diviseur 3 à 7
+                    q = Math.floor(Math.random() * 8) + 2; // quotient 2 à 9
+                } else { // hard
+                    d = Math.floor(Math.random() * 7) + 6; // diviseur 6 à 12
+                    q = Math.floor(Math.random() * 11) + 5; // quotient 5 à 15
+                }
+                const r = Math.floor(Math.random() * (d - 1)) + 1; // reste 1 à d-1
+                const D = d * q + r;
+                
+                correctAns = `q=${q}, r=${r}`;
+                qText = `${D} : ${d} = ?`;
+                
+                optionsSet.add(correctAns);
+                while(optionsSet.size < 4) {
+                    let wQ = q + Math.floor(Math.random() * 5) - 2;
+                    let wR = r + Math.floor(Math.random() * 5) - 2;
+                    if (wQ < 0) wQ = 1;
+                    if (wR < 0) wR = 0;
+                    let wAns = `q=${wQ}, r=${wR}`;
+                    if (wAns !== correctAns) optionsSet.add(wAns);
+                }
+
+            } else if (belt.type === "hardcore") {
+                const pool = [6, 7, 8, 9, 11, 12];
+                const a = pool[Math.floor(Math.random() * pool.length)];
+                const b = pool[Math.floor(Math.random() * pool.length)];
+                correctAns = a * b;
+                qText = `${a} x ${b} = ?`;
+                
+                optionsSet.add(correctAns);
+                while(optionsSet.size < 4) {
+                    let w = correctAns + Math.floor(Math.random() * 20) - 10;
+                    if (w > 0 && w !== correctAns) optionsSet.add(w);
+                }
+            }
+
+            currentQuestion = { text: qText, correct: correctAns };
+            questionText.textContent = currentQuestion.text;
+            
+            // Affichage des options
+            const shuffledOptions = Array.from(optionsSet).sort(() => Math.random() - 0.5);
+            optionsGrid.innerHTML = '';
+            
+            // Ajustement de la taille du texte si réponses longues (Euclidiennes)
+            const textClass = belt.type.startsWith("euclidian") ? "text-xl sm:text-2xl" : "text-3xl";
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = `btn-option w-full py-6 ${textClass} font-black rounded-2xl shadow-md border-b-4 border-gray-300 bg-gray-50 text-sky-900 hover:bg-sky-50 focus:outline-none`;
+                btn.textContent = opt;
+                btn.onclick = () => handleAnswer(opt, btn);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedAnswer, btnElement) {
+            if (isWaiting || (!isPracticeMode && timeLeft <= 0)) return;
+            
+            const belt = belts[currentBeltIndex];
+
+            if (selectedAnswer === currentQuestion.correct) {
+                isWaiting = true;
+                btnElement.classList.replace('bg-gray-50', 'bg-green-400');
+                btnElement.classList.replace('text-sky-900', 'text-white');
+                btnElement.classList.replace('border-gray-300', 'border-green-600');
+                btnElement.classList.add('scale-105');
+                
+                if (isFirstTry) {
+                    currentScore++;
+                    updateScoreUI();
+                    createTinyConfetti(btnElement);
+                }
+
+                const target = isPracticeMode ? 10 : belt.target;
+
+                if (currentScore >= target) {
+                    clearInterval(timerInterval);
+                    if (isPracticeMode) {
+                        setTimeout(() => triggerPracticeComplete(), 500);
+                    } else {
+                        setTimeout(() => triggerLevelUp(), 500);
+                    }
+                } else {
+                    setTimeout(() => generateQuestion(), 500); // Rapide pour ne pas trop pénaliser le chrono
+                }
+
+            } else {
+                isFirstTry = false;
+                btnElement.classList.replace('bg-gray-50', 'bg-red-400');
+                btnElement.classList.replace('text-sky-900', 'text-white');
+                btnElement.classList.replace('border-gray-300', 'border-red-600');
+                btnElement.classList.add('animate-shake');
+                
+                setTimeout(() => { btnElement.classList.remove('animate-shake'); }, 500);
+            }
+        }
+
+        // === UI ===
+        function updateBeltUI() {
+            const belt = belts[currentBeltIndex];
+            beltNameEl.textContent = belt.name;
+            beltIconEl.textContent = belt.icon;
+            beltInstructionEl.textContent = isPracticeMode ? "Mode Entraînement - " + belt.desc : belt.desc;
+            headerBg.className = `pt-6 pb-4 px-6 text-center transition-colors duration-500 rounded-t-[1.5rem] ${belt.colorClass} ${belt.textColor}`;
+        }
+
+        function updateScoreUI() {
+            const target = isPracticeMode ? 10 : belts[currentBeltIndex].target;
+            scoreText.textContent = `${currentScore} / ${target} réussis`;
+            const percentage = Math.min(100, (currentScore / target) * 100);
+            progressBar.style.width = `${percentage}%`;
+        }
+
+        function updateTimerUI() {
+            if (isPracticeMode) {
+                timerDisplay.textContent = "∞";
+                timerDisplay.classList.remove('timer-warning');
+                return;
+            }
+
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 10) {
+                timerDisplay.classList.add('timer-warning');
+            } else {
+                timerDisplay.classList.remove('timer-warning');
+            }
+        }
+
+        // === GESTION DES NIVEAUX ===
+        function triggerPracticeComplete() {
+            shootConfetti();
+            practiceModal.classList.remove('hidden');
+        }
+
+        function triggerLevelUp() {
+            shootConfetti();
+            
+            if (currentBeltIndex >= belts.length - 1) {
+                victoryModal.classList.remove('hidden');
+            } else {
+                currentBeltIndex++;
+                saveProgress();
+                
+                const nextBelt = belts[currentBeltIndex];
+                newBeltNameEl.textContent = nextBelt.name;
+                
+                let titleColor = nextBelt.textColor === 'text-white' ? 'text-sky-800' : nextBelt.textColor;
+                newBeltNameEl.className = `text-2xl font-black ${titleColor}`;
+                
+                levelUpModal.classList.remove('hidden');
+            }
+        }
+
+        function startNextBelt() {
+            levelUpModal.classList.add('hidden');
+            startLevel();
+        }
+
+        // === EFFETS VISUELS ===
+        function shootConfetti() {
+            const colors = ['#fde047', '#3b82f6', '#ef4444', '#22c55e', '#a855f7'];
+            for (let i = 0; i < 60; i++) createConfetti(colors);
+        }
+
+        function createTinyConfetti(btnElement) {
+            const colors = ['#fbbf24'];
+            const rect = btnElement.getBoundingClientRect();
+            for (let i = 0; i < 8; i++) createConfetti(colors, rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+
+        function createConfetti(colors, startX = null, startY = null) {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            const xPos = startX !== null ? startX + (Math.random() * 40 - 20) : Math.random() * window.innerWidth;
+            const yPos = startY !== null ? startY : -20;
+            
+            confetti.style.left = `${xPos}px`;
+            confetti.style.top = `${yPos}px`;
+            
+            if (Math.random() > 0.5) confetti.style.borderRadius = '50%';
+            const size = Math.random() * 10 + 5;
+            confetti.style.width = `${size}px`;
+            confetti.style.height = `${size}px`;
+            
+            const duration = Math.random() * 2 + 1;
+            confetti.style.animationDuration = `${duration}s`;
+            
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), duration * 1000);
+        }
+
+        // Lancement
+        window.onload = initApp;
+
+    </script>
+</body>
+</html>
