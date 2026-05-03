@@ -107,10 +107,15 @@
             </h1>
             <p class="text-sm font-bold opacity-90 mb-4" id="belt-instruction">Tables de 2 et 10</p>
             
-            <div class="bg-white/50 rounded-2xl p-2 inline-block shadow-inner backdrop-blur">
-                <div class="text-4xl font-black tracking-widest text-gray-800" id="timer-display">
-                    01:00
+            <div class="flex items-center justify-center gap-2">
+                <div class="bg-white/50 rounded-2xl p-2 inline-block shadow-inner backdrop-blur min-w-[120px]">
+                    <div class="text-4xl font-black tracking-widest text-gray-800" id="timer-display">
+                        01:00
+                    </div>
                 </div>
+                <button onclick="toggleTimer()" id="btn-toggle-timer" class="w-10 h-10 bg-white/60 hover:bg-white shadow-sm rounded-full flex items-center justify-center text-xl transition-all" title="Cacher le chrono">
+                    👁️
+                </button>
             </div>
         </header>
 
@@ -223,6 +228,7 @@
         let isFirstTry = true;
         let isWaiting = false;
         let isPracticeMode = false;
+        let isTimerHidden = false;
         
         let timeLeft = 60;
         let timerInterval;
@@ -255,6 +261,7 @@
         const newBeltNameEl = document.getElementById('new-belt-name');
         const victoryModal = document.getElementById('victory-modal');
         const practiceModal = document.getElementById('practice-modal');
+        const btnToggleTimer = document.getElementById('btn-toggle-timer');
 
         // === INITIALISATION ===
         function initApp() {
@@ -603,9 +610,29 @@
             progressBar.style.width = `${percentage}%`;
         }
 
+        function toggleTimer() {
+            isTimerHidden = !isTimerHidden;
+            btnToggleTimer.textContent = isTimerHidden ? '🙈' : '👁️';
+            btnToggleTimer.title = isTimerHidden ? 'Afficher le chrono' : 'Cacher le chrono';
+            updateTimerUI();
+            
+            // On redonne le focus à l'input pour ne pas perturber la saisie
+            const firstInput = document.querySelector('#input-zone input');
+            if (firstInput) firstInput.focus();
+        }
+
         function updateTimerUI() {
             if (isPracticeMode) {
                 timerDisplay.textContent = "∞";
+                timerDisplay.classList.remove('timer-warning');
+                btnToggleTimer.classList.add('hidden');
+                return;
+            } else {
+                btnToggleTimer.classList.remove('hidden');
+            }
+
+            if (isTimerHidden) {
+                timerDisplay.textContent = "--:--";
                 timerDisplay.classList.remove('timer-warning');
                 return;
             }
