@@ -16,13 +16,6 @@
             background-size: 30px 30px;
             user-select: none;
         }
-        
-        .btn-option {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn-option:active {
-            transform: scale(0.95);
-        }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
@@ -52,8 +45,17 @@
         @keyframes fall {
             to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
+
+        /* Supprimer les flèches des inputs number (spinners) */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
         
-        /* Personnalisation de la scrollbar pour l'accueil */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -91,7 +93,7 @@
     </div>
 
     <!-- ================= ÉCRAN DE JEU ================= -->
-    <main id="game-screen" class="hidden w-full max-w-lg bg-white rounded-[2rem] shadow-2xl border-4 border-sky-300 overflow-hidden relative">
+    <main id="game-screen" class="hidden w-full max-w-lg bg-white rounded-[2rem] shadow-2xl border-4 border-sky-300 overflow-hidden relative flex flex-col">
         
         <button onclick="goHome()" class="absolute top-4 left-4 z-10 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-xl shadow hover:bg-white hover:scale-110 transition-all">
             🏠
@@ -105,7 +107,6 @@
             </h1>
             <p class="text-sm font-bold opacity-90 mb-4" id="belt-instruction">Tables de 2 et 10</p>
             
-            <!-- Compte à rebours -->
             <div class="bg-white/50 rounded-2xl p-2 inline-block shadow-inner backdrop-blur">
                 <div class="text-4xl font-black tracking-widest text-gray-800" id="timer-display">
                     01:00
@@ -124,14 +125,15 @@
             </div>
         </div>
 
-        <!-- Zone de la question -->
-        <div class="p-8 text-center min-h-[300px] flex flex-col justify-center">
-            <div class="text-5xl sm:text-6xl font-black text-sky-900 mb-8 tracking-wider" id="question-text">
-                2 x 3 = ?
+        <!-- Zone de la question et de la saisie -->
+        <div class="p-8 text-center flex-grow flex flex-col justify-center items-center">
+            <div class="text-5xl sm:text-6xl font-black text-sky-900 mb-6 tracking-wider" id="question-text">
+                2 x 3 =
             </div>
 
-            <div class="grid grid-cols-2 gap-4" id="options-grid">
-                <!-- Boutons générés en JS -->
+            <!-- Conteneur adaptatif pour les champs de saisie -->
+            <div id="input-zone" class="w-full max-w-sm flex flex-col gap-4">
+                <!-- Rempli dynamiquement par JS -->
             </div>
         </div>
 
@@ -170,7 +172,7 @@
         <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl animate-pop border-8 border-gray-800 relative overflow-hidden">
             <div class="text-7xl mb-4">🏆🥷</div>
             <h2 class="text-4xl font-black text-gray-800 mb-4">MAÎTRE ABSOLU !</h2>
-            <p class="text-xl text-gray-600 font-bold mb-6">Tu as vaincu le chronomètre et obtenu la Ceinture Noire !</p>
+            <p class="text-xl text-gray-600 font-bold mb-6">Tu as vaincu le chronomètre et obtenu la Ceinture Or !</p>
             <button onclick="hardReset()" class="w-full py-4 bg-sky-500 hover:bg-sky-600 text-white font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
                 Recommencer l'aventure 🔄
             </button>
@@ -197,18 +199,21 @@
     <script>
         // === DONNÉES PÉDAGOGIQUES ===
         const belts = [
-            { name: "Ceinture Blanche",    tables: [2, 10], type: "mult", target: 8,  colorClass: "bg-white",          badgeColor: "bg-white border-gray-300 text-gray-800", textColor: "text-gray-800", icon: "🤍", desc: "Tables de 2 et 10" },
-            { name: "Ceinture Jaune",      tables: [2, 5, 10], type: "mult", target: 8,  colorClass: "bg-yellow-200",     badgeColor: "bg-yellow-200 border-yellow-400 text-yellow-900", textColor: "text-yellow-900", icon: "💛", desc: "Tables de 2, 5, 10" },
-            { name: "Ceinture Orange",     tables: [2, 3, 5, 10], type: "mult", target: 8,  colorClass: "bg-orange-300",     badgeColor: "bg-orange-300 border-orange-500 text-orange-900", textColor: "text-orange-900", icon: "🧡", desc: "Tables de 2, 3, 5, 10" },
-            { name: "Ceinture Rose",       tables: [2, 3, 4, 5, 10], type: "mult", target: 10, colorClass: "bg-pink-300",       badgeColor: "bg-pink-300 border-pink-400 text-pink-900", textColor: "text-pink-900", icon: "🩷", desc: "Tables de 2, 3, 4, 5, 10" },
-            { name: "Ceinture Vert Clair", tables: [2, 3, 4, 5, 6, 10], type: "mult", target: 12, colorClass: "bg-green-300",      badgeColor: "bg-green-300 border-green-400 text-green-900", textColor: "text-green-900", icon: "🍏", desc: "Tables jusqu'à 6 (+10)" },
-            { name: "Ceinture Vert Foncé", tables: [2, 3, 4, 5, 6, 7, 10], type: "mult", target: 15, colorClass: "bg-green-600",      badgeColor: "bg-green-600 border-green-700 text-white", textColor: "text-white", icon: "🟩", desc: "Tables jusqu'à 7 (+10)" },
-            { name: "Ceinture Bleu Clair", tables: [2, 3, 4, 5, 6, 7, 8, 10], type: "mult", target: 18, colorClass: "bg-blue-300",       badgeColor: "bg-blue-300 border-blue-400 text-blue-900", textColor: "text-blue-900", icon: "🩵", desc: "Tables jusqu'à 8 (+10)" },
-            { name: "Ceinture Bleu Foncé", tables: [2, 3, 4, 5, 6, 7, 8, 9, 10], type: "mult", target: 20, colorClass: "bg-blue-600",       badgeColor: "bg-blue-600 border-blue-700 text-white", textColor: "text-white", icon: "🟦", desc: "Toutes les tables (1-10)" },
-            { name: "Ceinture Mauve",      tables: [2, 3, 4, 5, 6, 7, 8, 9], type: "div", target: 10, colorClass: "bg-purple-400",     badgeColor: "bg-purple-400 border-purple-500 text-white", textColor: "text-white", icon: "🪻", desc: "Divisions exactes" },
-            { name: "Ceinture Violette",   tables: [], type: "euclidian_easy", target: 6, colorClass: "bg-fuchsia-600",    badgeColor: "bg-fuchsia-600 border-fuchsia-700 text-white", textColor: "text-white", icon: "💜", desc: "Divisions euclidiennes (simples)" },
-            { name: "Ceinture Marron",     tables: [], type: "euclidian_hard", target: 8, colorClass: "bg-amber-800",      badgeColor: "bg-amber-800 border-amber-900 text-white", textColor: "text-white", icon: "🤎", desc: "Divisions euclidiennes (complexes)" },
-            { name: "Ceinture Noire",      tables: [], type: "hardcore", target: 20, colorClass: "bg-gray-800",       badgeColor: "bg-gray-800 border-gray-900 text-white", textColor: "text-white", icon: "🖤", desc: "Tables 6-9, 11 et 12" }
+            { name: "Ceinture Blanche",    tables: [2, 10], reviewTables: [], type: "mult", target: 8,  colorClass: "bg-white",          badgeColor: "bg-white border-gray-300 text-gray-800", textColor: "text-gray-800", icon: "🤍", desc: "Tables de 2 et 10" },
+            { name: "Ceinture Jaune",      tables: [5],     reviewTables: [2, 10], type: "mult", target: 8,  colorClass: "bg-yellow-200",     badgeColor: "bg-yellow-200 border-yellow-400 text-yellow-900", textColor: "text-yellow-900", icon: "💛", desc: "Table 5 (+ révisions)" },
+            { name: "Ceinture Orange",     tables: [3],     reviewTables: [2, 5, 10], type: "mult", target: 8,  colorClass: "bg-orange-300",     badgeColor: "bg-orange-300 border-orange-500 text-orange-900", textColor: "text-orange-900", icon: "🧡", desc: "Table 3 (+ révisions)" },
+            { name: "Ceinture Rose",       tables: [4],     reviewTables: [2, 3, 5, 10], type: "mult", target: 10, colorClass: "bg-pink-300",       badgeColor: "bg-pink-300 border-pink-400 text-pink-900", textColor: "text-pink-900", icon: "🩷", desc: "Table 4 (+ révisions)" },
+            { name: "Ceinture Vert Clair", tables: [6],     reviewTables: [2, 3, 4, 5, 10], type: "mult", target: 12, colorClass: "bg-green-300",      badgeColor: "bg-green-300 border-green-400 text-green-900", textColor: "text-green-900", icon: "🍏", desc: "Table 6 (+ révisions)" },
+            { name: "Ceinture Vert Foncé", tables: [7],     reviewTables: [2, 3, 4, 5, 6, 10], type: "mult", target: 15, colorClass: "bg-green-600",      badgeColor: "bg-green-600 border-green-700 text-white", textColor: "text-white", icon: "🟩", desc: "Table 7 (+ révisions)" },
+            { name: "Ceinture Bleu Clair", tables: [8],     reviewTables: [2, 3, 4, 5, 6, 7, 10], type: "mult", target: 18, colorClass: "bg-blue-300",       badgeColor: "bg-blue-300 border-blue-400 text-blue-900", textColor: "text-blue-900", icon: "🩵", desc: "Table 8 (+ révisions)" },
+            { name: "Ceinture Bleu Foncé", tables: [9],     reviewTables: [2, 3, 4, 5, 6, 7, 8, 10], type: "mult", target: 20, colorClass: "bg-blue-600",       badgeColor: "bg-blue-600 border-blue-700 text-white", textColor: "text-white", icon: "🟦", desc: "Table 9 (+ révisions)" },
+            { name: "Ceinture Mauve",      tables: [2, 3, 4, 5, 6, 7, 8, 9], reviewTables: [], type: "div", target: 10, colorClass: "bg-purple-400",     badgeColor: "bg-purple-400 border-purple-500 text-white", textColor: "text-white", icon: "🪻", desc: "Divisions exactes" },
+            { name: "Ceinture Violette",   tables: [], reviewTables: [], type: "euclidian_easy", target: 6, colorClass: "bg-fuchsia-600",    badgeColor: "bg-fuchsia-600 border-fuchsia-700 text-white", textColor: "text-white", icon: "💜", desc: "Divisions euclidiennes simples" },
+            { name: "Ceinture Marron",     tables: [], reviewTables: [], type: "euclidian_hard", target: 8, colorClass: "bg-amber-800",      badgeColor: "bg-amber-800 border-amber-900 text-white", textColor: "text-white", icon: "🤎", desc: "Divisions euclidiennes complexes" },
+            { name: "Ceinture Noire",      tables: [11, 12], reviewTables: [6, 7, 8, 9], type: "mult", target: 20, colorClass: "bg-gray-800",       badgeColor: "bg-gray-800 border-gray-900 text-white", textColor: "text-white", icon: "🖤", desc: "Tables 11-12 (+révisions 6-9)" },
+            { name: "Brillante Bronze",    tables: [], reviewTables: [], type: "euclidian_expert", target: 8, colorClass: "bg-orange-400", badgeColor: "bg-gradient-to-r from-orange-400 to-yellow-600 border-orange-500 text-white", textColor: "text-white", icon: "🥉", desc: "Grands nombres (avec reste)" },
+            { name: "Brillante Argent",    tables: [], reviewTables: [], type: "euclidian_expert", target: 12, colorClass: "bg-slate-300", badgeColor: "bg-gradient-to-r from-slate-200 to-slate-400 border-slate-400 text-slate-800", textColor: "text-slate-900", icon: "🥈", desc: "Grands nombres (Vitesse)" },
+            { name: "Brillante Or",        tables: [], reviewTables: [], type: "euclidian_expert", target: 15, colorClass: "bg-yellow-400", badgeColor: "bg-gradient-to-r from-yellow-300 to-yellow-500 border-yellow-500 text-yellow-900", textColor: "text-yellow-900", icon: "🥇", desc: "L'épreuve ultime ! (reste)" }
         ];
 
         // === ÉTAT DU JEU ===
@@ -240,9 +245,7 @@
         const progressBar = document.getElementById('progress-bar');
         
         const questionText = document.getElementById('question-text');
-        const optionsGrid = document.getElementById('options-grid');
-        const feedbackZone = document.getElementById('feedback-zone');
-        const feedbackMsg = document.getElementById('feedback-msg');
+        const inputZone = document.getElementById('input-zone');
         
         const timeoutModal = document.getElementById('timeout-modal');
         const timeoutScore = document.getElementById('timeout-score');
@@ -332,10 +335,6 @@
             startTest();
         }
 
-        function startGame() {
-            startTest();
-        }
-
         function goHome() {
             clearInterval(timerInterval);
             gameScreen.classList.add('hidden');
@@ -391,108 +390,166 @@
             const belt = belts[currentBeltIndex];
             
             let qText = "";
-            let correctAns = null;
-            let optionsSet = new Set();
             
             if (belt.type === "mult") {
-                const table = belt.tables[Math.floor(Math.random() * belt.tables.length)];
-                const multiplier = Math.floor(Math.random() * 10) + 1;
-                correctAns = table * multiplier;
-                qText = `${table} x ${multiplier} = ?`;
-                
-                optionsSet.add(correctAns);
-                while(optionsSet.size < 4) {
-                    let w = correctAns + (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? table : -1);
-                    if (w > 0) optionsSet.add(w);
+                let table;
+                // Logique de pondération : 60% nouvelle table, 40% révisions
+                if (belt.reviewTables && belt.reviewTables.length > 0) {
+                    if (Math.random() < 0.6) {
+                        table = belt.tables[Math.floor(Math.random() * belt.tables.length)];
+                    } else {
+                        table = belt.reviewTables[Math.floor(Math.random() * belt.reviewTables.length)];
+                    }
+                } else {
+                    table = belt.tables[Math.floor(Math.random() * belt.tables.length)];
                 }
+
+                const maxMultiplier = (belt.name === "Ceinture Noire") ? 12 : 10;
+                const multiplier = Math.floor(Math.random() * maxMultiplier) + 1;
+                
+                if (Math.random() > 0.5) {
+                    qText = `${table} × ${multiplier} =`;
+                } else {
+                    qText = `${multiplier} × ${table} =`;
+                }
+                currentQuestion = { text: qText, type: "standard", correct: table * multiplier };
 
             } else if (belt.type === "div") {
                 const divisor = belt.tables[Math.floor(Math.random() * belt.tables.length)];
-                const quotient = Math.floor(Math.random() * 9) + 2; // 2 à 10
+                const quotient = Math.floor(Math.random() * 9) + 2;
                 const dividend = divisor * quotient;
-                correctAns = quotient;
-                qText = `${dividend} : ${divisor} = ?`;
-                
-                optionsSet.add(correctAns);
-                while(optionsSet.size < 4) {
-                    let w = correctAns + Math.floor(Math.random() * 5) - 2;
-                    if (w > 0 && w !== correctAns) optionsSet.add(w);
-                }
+                qText = `${dividend} : ${divisor} =`;
+                currentQuestion = { text: qText, type: "standard", correct: quotient };
 
             } else if (belt.type.startsWith("euclidian")) {
                 let d, q;
                 if (belt.type === "euclidian_easy") {
-                    d = Math.floor(Math.random() * 5) + 3; // diviseur 3 à 7
-                    q = Math.floor(Math.random() * 8) + 2; // quotient 2 à 9
-                } else { // hard
-                    d = Math.floor(Math.random() * 7) + 6; // diviseur 6 à 12
-                    q = Math.floor(Math.random() * 11) + 5; // quotient 5 à 15
+                    d = Math.floor(Math.random() * 5) + 3; 
+                    q = Math.floor(Math.random() * 8) + 2; 
+                } else if (belt.type === "euclidian_hard") { 
+                    d = Math.floor(Math.random() * 7) + 6; 
+                    q = Math.floor(Math.random() * 11) + 5; 
+                } else { 
+                    d = Math.floor(Math.random() * 6) + 7; 
+                    let minQ = 5;
+                    let maxQ = Math.floor(140 / d);
+                    if (maxQ < minQ) maxQ = minQ + 3;
+                    q = Math.floor(Math.random() * (maxQ - minQ + 1)) + minQ; 
                 }
-                const r = Math.floor(Math.random() * (d - 1)) + 1; // reste 1 à d-1
+                
+                const r = Math.floor(Math.random() * (d - 1)) + 1; 
                 const D = d * q + r;
                 
-                correctAns = `q=${q}, r=${r}`;
-                qText = `${D} : ${d} = ?`;
-                
-                optionsSet.add(correctAns);
-                while(optionsSet.size < 4) {
-                    let wQ = q + Math.floor(Math.random() * 5) - 2;
-                    let wR = r + Math.floor(Math.random() * 5) - 2;
-                    if (wQ < 0) wQ = 1;
-                    if (wR < 0) wR = 0;
-                    let wAns = `q=${wQ}, r=${wR}`;
-                    if (wAns !== correctAns) optionsSet.add(wAns);
-                }
-
-            } else if (belt.type === "hardcore") {
-                const pool = [6, 7, 8, 9, 11, 12];
-                const a = pool[Math.floor(Math.random() * pool.length)];
-                const b = pool[Math.floor(Math.random() * pool.length)];
-                correctAns = a * b;
-                qText = `${a} x ${b} = ?`;
-                
-                optionsSet.add(correctAns);
-                while(optionsSet.size < 4) {
-                    let w = correctAns + Math.floor(Math.random() * 20) - 10;
-                    if (w > 0 && w !== correctAns) optionsSet.add(w);
-                }
+                qText = `${D} : ${d} →`;
+                currentQuestion = { text: qText, type: "euclidian", q: q, r: r };
             }
 
-            currentQuestion = { text: qText, correct: correctAns };
             questionText.textContent = currentQuestion.text;
-            
-            // Affichage des options
-            const shuffledOptions = Array.from(optionsSet).sort(() => Math.random() - 0.5);
-            optionsGrid.innerHTML = '';
-            
-            // Ajustement de la taille du texte si réponses longues (Euclidiennes)
-            const textClass = belt.type.startsWith("euclidian") ? "text-xl sm:text-2xl" : "text-3xl";
-
-            shuffledOptions.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = `btn-option w-full py-6 ${textClass} font-black rounded-2xl shadow-md border-b-4 border-gray-300 bg-gray-50 text-sky-900 hover:bg-sky-50 focus:outline-none`;
-                btn.textContent = opt;
-                btn.onclick = () => handleAnswer(opt, btn);
-                optionsGrid.appendChild(btn);
-            });
+            renderInputZone();
         }
 
-        function handleAnswer(selectedAnswer, btnElement) {
-            if (isWaiting || (!isPracticeMode && timeLeft <= 0)) return;
+        // === GESTION DE LA SAISIE (NOUVEAU) ===
+        function renderInputZone() {
+            inputZone.innerHTML = '';
             
+            if (currentQuestion.type === 'standard') {
+                inputZone.innerHTML = `
+                    <input type="number" id="ans-input" inputmode="numeric" pattern="[0-9]*" class="w-full text-center text-4xl sm:text-5xl font-black py-4 rounded-2xl border-4 border-sky-200 focus:border-sky-500 focus:outline-none text-sky-900 shadow-inner bg-white transition-all" placeholder="?">
+                    <button id="btn-validate" class="w-full py-4 mt-2 bg-sky-500 hover:bg-sky-600 text-white font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-2xl flex items-center justify-center gap-2">
+                        Valider <span>↵</span>
+                    </button>
+                `;
+                const inp = document.getElementById('ans-input');
+                const btn = document.getElementById('btn-validate');
+                
+                inp.focus();
+                inp.addEventListener('keydown', (e) => { if(e.key === 'Enter') handleValidation(); });
+                btn.addEventListener('click', handleValidation);
+                
+            } else {
+                // Interface spéciale pour division Euclidienne
+                inputZone.innerHTML = `
+                    <div class="flex gap-4 w-full">
+                        <div class="flex-1 flex flex-col items-center">
+                            <label class="font-bold text-gray-500 mb-1 uppercase text-sm tracking-wider">Quotient</label>
+                            <input type="number" id="ans-q" inputmode="numeric" pattern="[0-9]*" class="w-full text-center text-3xl sm:text-4xl font-black py-4 rounded-2xl border-4 border-sky-200 focus:border-sky-500 focus:outline-none text-sky-900 shadow-inner bg-white transition-all" placeholder="q=">
+                        </div>
+                        <div class="flex-1 flex flex-col items-center">
+                            <label class="font-bold text-gray-500 mb-1 uppercase text-sm tracking-wider">Reste</label>
+                            <input type="number" id="ans-r" inputmode="numeric" pattern="[0-9]*" class="w-full text-center text-3xl sm:text-4xl font-black py-4 rounded-2xl border-4 border-sky-200 focus:border-sky-500 focus:outline-none text-sky-900 shadow-inner bg-white transition-all" placeholder="r=">
+                        </div>
+                    </div>
+                    <button id="btn-validate" class="w-full py-4 mt-2 bg-sky-500 hover:bg-sky-600 text-white font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-2xl flex items-center justify-center gap-2">
+                        Valider <span>↵</span>
+                    </button>
+                `;
+                const inpQ = document.getElementById('ans-q');
+                const inpR = document.getElementById('ans-r');
+                const btn = document.getElementById('btn-validate');
+                
+                inpQ.focus();
+                inpQ.addEventListener('keydown', (e) => { if(e.key === 'Enter') inpR.focus(); });
+                inpR.addEventListener('keydown', (e) => { if(e.key === 'Enter') handleValidation(); });
+                btn.addEventListener('click', handleValidation);
+            }
+        }
+
+        function handleValidation() {
+            if (isWaiting || (!isPracticeMode && timeLeft <= 0)) return;
+
+            let isCorrect = false;
+            let inputsToStyle = [];
+
+            if (currentQuestion.type === 'standard') {
+                const inp = document.getElementById('ans-input');
+                const val = parseInt(inp.value, 10);
+                if (isNaN(val)) {
+                    inp.classList.add('animate-shake', 'border-red-400');
+                    setTimeout(() => inp.classList.remove('animate-shake', 'border-red-400'), 500);
+                    return; 
+                }
+                isCorrect = (val === currentQuestion.correct);
+                inputsToStyle.push(inp);
+            } else {
+                const inpQ = document.getElementById('ans-q');
+                const inpR = document.getElementById('ans-r');
+                const valQ = parseInt(inpQ.value, 10);
+                const valR = parseInt(inpR.value, 10);
+                
+                if (isNaN(valQ) || isNaN(valR)) {
+                    if(isNaN(valQ)) inpQ.classList.add('animate-shake', 'border-red-400');
+                    if(isNaN(valR)) inpR.classList.add('animate-shake', 'border-red-400');
+                    setTimeout(() => {
+                        inpQ.classList.remove('animate-shake', 'border-red-400');
+                        inpR.classList.remove('animate-shake', 'border-red-400');
+                    }, 500);
+                    return; 
+                }
+                isCorrect = (valQ === currentQuestion.q && valR === currentQuestion.r);
+                inputsToStyle.push(inpQ, inpR);
+            }
+
+            processAnswerResult(isCorrect, inputsToStyle);
+        }
+
+        function processAnswerResult(isCorrect, inputsToStyle) {
             const belt = belts[currentBeltIndex];
 
-            if (selectedAnswer === currentQuestion.correct) {
+            if (isCorrect) {
                 isWaiting = true;
-                btnElement.classList.replace('bg-gray-50', 'bg-green-400');
-                btnElement.classList.replace('text-sky-900', 'text-white');
-                btnElement.classList.replace('border-gray-300', 'border-green-600');
-                btnElement.classList.add('scale-105');
+                
+                // Style de réussite sur les inputs
+                inputsToStyle.forEach(inp => {
+                    inp.classList.replace('border-sky-200', 'border-green-500');
+                    inp.classList.replace('text-sky-900', 'text-green-700');
+                    inp.classList.add('bg-green-100', 'scale-105');
+                    inp.disabled = true; // Empêcher la modification pendant l'animation
+                });
                 
                 if (isFirstTry) {
                     currentScore++;
                     updateScoreUI();
-                    createTinyConfetti(btnElement);
+                    createTinyConfetti(inputsToStyle[0]);
                 }
 
                 const target = isPracticeMode ? 10 : belt.target;
@@ -500,22 +557,33 @@
                 if (currentScore >= target) {
                     clearInterval(timerInterval);
                     if (isPracticeMode) {
-                        setTimeout(() => triggerPracticeComplete(), 500);
+                        setTimeout(() => triggerPracticeComplete(), 600);
                     } else {
-                        setTimeout(() => triggerLevelUp(), 500);
+                        setTimeout(() => triggerLevelUp(), 600);
                     }
                 } else {
-                    setTimeout(() => generateQuestion(), 500); // Rapide pour ne pas trop pénaliser le chrono
+                    setTimeout(() => generateQuestion(), 500); 
                 }
 
             } else {
                 isFirstTry = false;
-                btnElement.classList.replace('bg-gray-50', 'bg-red-400');
-                btnElement.classList.replace('text-sky-900', 'text-white');
-                btnElement.classList.replace('border-gray-300', 'border-red-600');
-                btnElement.classList.add('animate-shake');
                 
-                setTimeout(() => { btnElement.classList.remove('animate-shake'); }, 500);
+                // Style d'erreur sur les inputs
+                inputsToStyle.forEach(inp => {
+                    inp.classList.replace('border-sky-200', 'border-red-500');
+                    inp.classList.replace('text-sky-900', 'text-red-700');
+                    inp.classList.add('bg-red-50', 'animate-shake');
+                });
+                
+                setTimeout(() => { 
+                    inputsToStyle.forEach(inp => {
+                        inp.classList.replace('border-red-500', 'border-sky-200');
+                        inp.classList.replace('text-red-700', 'text-sky-900');
+                        inp.classList.remove('bg-red-50', 'animate-shake');
+                        inp.value = ''; // On vide pour laisser retenter
+                    });
+                    inputsToStyle[0].focus(); // On redonne le focus au premier champ
+                }, 500);
             }
         }
 
@@ -589,9 +657,9 @@
             for (let i = 0; i < 60; i++) createConfetti(colors);
         }
 
-        function createTinyConfetti(btnElement) {
+        function createTinyConfetti(el) {
             const colors = ['#fbbf24'];
-            const rect = btnElement.getBoundingClientRect();
+            const rect = el.getBoundingClientRect();
             for (let i = 0; i < 8; i++) createConfetti(colors, rect.left + rect.width / 2, rect.top + rect.height / 2);
         }
 
