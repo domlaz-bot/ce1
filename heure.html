@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apprends à lire l'heure - Édition Kpop !</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Styles & Animations pour le style "Kpop / Kawaii" */
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #fce7f3; /* Pink 100 */
+            background-image: radial-gradient(#fbcfe8 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+        h1, h2, .cartoon-font {
+            font-family: 'Fredoka One', cursive;
+            letter-spacing: 1px;
+        }
+        .bounce-in {
+            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        
+        /* Personnalisation Tailwind des boutons */
+        .btn-cartoon {
+            box-shadow: 0 6px 0px rgba(0,0,0,0.15);
+            transition: all 0.1s;
+        }
+        .btn-cartoon:active {
+            box-shadow: 0 0px 0px rgba(0,0,0,0.15);
+            transform: translateY(6px);
+        }
+        .btn-cartoon:disabled {
+            box-shadow: 0 0px 0px rgba(0,0,0,0.15);
+            transform: translateY(6px);
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Stylisation des sliders (Range inputs) pour les enfants */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]:focus { outline: none; }
+        
+        /* Piste du slider */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 16px;
+            cursor: pointer;
+            background: #f3e8ff; /* purple 100 */
+            border-radius: 8px;
+            border: 2px solid #d8b4fe; /* purple 300 */
+        }
+        /* Curseur du slider Heures (Bleu/Violet) */
+        #slider-h::-webkit-slider-thumb {
+            height: 36px;
+            width: 36px;
+            border-radius: 50%;
+            background: #a855f7; /* purple 500 */
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -12px;
+            border: 4px solid white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        /* Curseur du slider Minutes (Rose) */
+        #slider-m::-webkit-slider-thumb {
+            height: 36px;
+            width: 36px;
+            border-radius: 50%;
+            background: #ec4899; /* pink 500 */
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -12px;
+            border: 4px solid white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Conteneur principal de l'application -->
+    <div id="app" class="w-full max-w-3xl bg-white rounded-[3rem] shadow-2xl overflow-hidden border-8 border-white bounce-in relative">
+        <!-- Le contenu sera injecté ici par JavaScript -->
+    </div>
+
+    <script>
+        // --- DONNÉES PÉDAGOGIQUES ---
+        const lessonData = {
+            title: "Lire l'heure pour le concert !",
+            rules: [
+                "La <strong class='text-purple-600'>petite</strong> aiguille indique les <strong class='text-purple-600'>heures</strong>.",
+                "La <strong class='text-pink-500'>grande</strong> aiguille indique les <strong class='text-pink-500'>minutes</strong>.",
+                "Il faut <strong>60 minutes</strong> pour faire une heure."
+            ],
+            tips: [
+                "un quart d'heure = 15 minutes",
+                "une demi-heure = 30 minutes",
+                "une heure = 60 minutes"
+            ]
+        };
+
+        // EXERCICES PROGRESSIFS
+        const questions = [
+            // NIVEAU 1 : QCM en CHIFFRES (Heures simples)
+            {
+                level: 1, type: "qcm",
+                question: "À quelle heure commence notre répétition de danse ?",
+                clock: { hours: 9, minutes: 0 },
+                choices: ["9 h 00", "12 h 45", "3 h 00"],
+                correctAnswer: 0,
+                feedbackSuccess: "Bravo ! La petite aiguille est sur le 9 et la grande sur le 12 (0 minute). On y va !",
+                feedbackError: "Regarde bien : la petite aiguille (les heures) pointe sur le 9."
+            },
+            {
+                level: 1, type: "qcm",
+                question: "Observe la grande aiguille (sur le 6). Quelle heure est-il ?",
+                clock: { hours: 10, minutes: 30 },
+                choices: ["6 h 10", "10 h 30", "10 h 00"],
+                correctAnswer: 1,
+                feedbackSuccess: "Parfait ! La grande aiguille sur le 6 signifie 30 minutes. Tu as le rythme !",
+                feedbackError: "Attention, la grande aiguille sur le 6 indique 30 minutes. Il est 10 h 30."
+            },
+            {
+                level: 1, type: "qcm",
+                question: "C'est l'heure du repas avec le groupe ! Quelle heure est-il ?",
+                clock: { hours: 12, minutes: 15 },
+                choices: ["12 h 15", "3 h 12", "12 h 30"],
+                correctAnswer: 0,
+                feedbackSuccess: "Excellent ! La grande aiguille est sur le 3, donc il est 15 minutes.",
+                feedbackError: "Non, regarde la grande aiguille. Elle pointe sur le 3, ce qui correspond à 15 minutes (un quart d'heure)."
+            },
+
+            // NIVEAU 2 : QCM en LETTRES (Vocabulaire spécifique)
+            {
+                level: 2, type: "qcm",
+                question: "Lis l'heure en lettres pour notre interview :",
+                clock: { hours: 11, minutes: 15 },
+                choices: ["Onze heures pile", "Onze heures et demie", "Onze heures et quart"],
+                correctAnswer: 2,
+                feedbackSuccess: "Daebak (Génial) ! La grande aiguille est sur le 3, ça fait 15 minutes, on dit 'et quart'.",
+                feedbackError: "Concentre-toi : la grande aiguille pointe sur le 3. C'est 15 minutes, donc 'et quart'."
+            },
+            {
+                level: 2, type: "qcm",
+                question: "Lis l'heure en lettres pour le fan meeting :",
+                clock: { hours: 4, minutes: 30 },
+                choices: ["Quatre heures et demie", "Six heures et quart", "Quatre heures pile"],
+                correctAnswer: 0,
+                feedbackSuccess: "Exact ! 30 minutes, c'est la moitié de l'horloge, on dit 'et demie'.",
+                feedbackError: "La grande aiguille est sur le 6 (30 minutes), donc on dit 'et demie'."
+            },
+            {
+                level: 2, type: "qcm",
+                question: "Le styliste arrive à cette heure, lis-la en lettres :",
+                clock: { hours: 8, minutes: 0 },
+                choices: ["Huit heures et demie", "Huit heures pile", "Douze heures et huit"],
+                correctAnswer: 1,
+                feedbackSuccess: "Super ! La grande aiguille est tout en haut sur le 12, c'est une heure 'pile'.",
+                feedbackError: "Regarde la grande aiguille, elle est sur le 12, donc ce sont des heures piles (00 minute)."
+            },
+
+            // NIVEAU 3 : INTERACTIF (Manipulation des aiguilles)
+            {
+                level: 3, type: "interactive",
+                question: "Tourne les aiguilles pour régler l'heure du concert : <br><span class='text-purple-600 cartoon-font text-3xl'>7 h 00</span>",
+                target: { hours: 7, minutes: 0 },
+                feedbackSuccess: "Magnifique ! Tu es prêt(e) pour monter sur scène. 🌟",
+                feedbackError: "Presque ! Pour 7 h 00, la PETITE aiguille doit être sur le 7, et la GRANDE sur le 12."
+            },
+            {
+                level: 3, type: "interactive",
+                question: "Tourne les aiguilles pour l'enregistrement studio : <br><span class='text-purple-600 cartoon-font text-3xl'>Neuf heures et quart</span>",
+                target: { hours: 9, minutes: 15 },
+                feedbackSuccess: "Superbe ! 'Et quart', c'est bien 15 minutes (grande aiguille sur le 3).",
+                feedbackError: "Souviens-toi : 'et quart' c'est 15 minutes, la grande aiguille doit aller sur le 3."
+            },
+            {
+                level: 3, type: "interactive",
+                question: "Tourne les aiguilles pour la fin du show : <br><span class='text-purple-600 cartoon-font text-3xl'>Deux heures et demie</span>",
+                target: { hours: 2, minutes: 30 },
+                feedbackSuccess: "Félicitations ! 'Et demie', c'est 30 minutes (grande aiguille sur le 6). Fighting ! 🫰",
+                feedbackError: "Attention, 'et demie' veut dire 30 minutes. La grande aiguille doit être tout en bas, sur le 6."
+            },
+            {
+                level: 3, type: "interactive",
+                question: "Règle ton réveil pour le vol vers la Corée : <br><span class='text-purple-600 cartoon-font text-3xl'>Cinq heures pile</span>",
+                target: { hours: 5, minutes: 0 },
+                feedbackSuccess: "Parfait ! En route pour l'aéroport ! ✈️",
+                feedbackError: "Pour cinq heures pile, la petite aiguille doit pointer sur le 5 et la grande tout en haut sur le 12."
+            }
+        ];
+
+        // --- ÉTAT DE L'APPLICATION ---
+        let currentStep = 'intro'; // intro, lesson, quiz, result
+        let currentQuestionIndex = 0;
+        let score = 0;
+        
+        // État pour les questions interactives
+        let currentIntH = 12;
+        let currentIntM = 0;
+
+        const $ = (id) => document.getElementById(id);
+
+        // --- FONCTION DE DESSIN DE L'HORLOGE ---
+        function generateClockSVG(hours, minutes, size = "120px") {
+            const hourAngle = ((hours % 12) + minutes / 60) * 30; 
+            const minuteAngle = minutes * 6; 
+
+            return `
+                <svg width="${size}" height="${size}" viewBox="0 0 100 100" class="mx-auto drop-shadow-lg">
+                    <!-- Cadran -->
+                    <circle cx="50" cy="50" r="48" fill="#f8fafc" stroke="#334155" stroke-width="4"/>
+                    <!-- Tiques des heures -->
+                    ${[...Array(12)].map((_, i) => {
+                        const a = (i * 30 - 90) * (Math.PI / 180);
+                        const x1 = 50 + 40 * Math.cos(a);
+                        const y1 = 50 + 40 * Math.sin(a);
+                        const x2 = 50 + 45 * Math.cos(a);
+                        const y2 = 50 + 45 * Math.sin(a);
+                        // Tiques plus épaisses pour 12, 3, 6, 9
+                        const strokeW = (i % 3 === 0) ? 3 : 1;
+                        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#334155" stroke-width="${strokeW}"/>`;
+                    }).join('')}
+                    
+                    <!-- Chiffres principaux -->
+                    <text x="50" y="16" font-family="Nunito, sans-serif" font-size="12" font-weight="900" text-anchor="middle" fill="#1e293b">12</text>
+                    <text x="85" y="54" font-family="Nunito, sans-serif" font-size="12" font-weight="900" text-anchor="middle" fill="#1e293b">3</text>
+                    <text x="50" y="90" font-family="Nunito, sans-serif" font-size="12" font-weight="900" text-anchor="middle" fill="#1e293b">6</text>
+                    <text x="15" y="54" font-family="Nunito, sans-serif" font-size="12" font-weight="900" text-anchor="middle" fill="#1e293b">9</text>
+
+                    <!-- Aiguille des HEURES (Violet pour l'apprentissage) -->
+                    <line x1="50" y1="50" x2="${50 + 22 * Math.cos((hourAngle - 90) * (Math.PI / 180))}" y2="${50 + 22 * Math.sin((hourAngle - 90) * (Math.PI / 180))}" stroke="#a855f7" stroke-width="6" stroke-linecap="round"/>
+                    
+                    <!-- Aiguille des MINUTES (Rose pour l'apprentissage) -->
+                    <line x1="50" y1="50" x2="${50 + 35 * Math.cos((minuteAngle - 90) * (Math.PI / 180))}" y2="${50 + 35 * Math.sin((minuteAngle - 90) * (Math.PI / 180))}" stroke="#ec4899" stroke-width="3" stroke-linecap="round"/>
+                    
+                    <!-- Centre -->
+                    <circle cx="50" cy="50" r="4" fill="#1e293b"/>
+                </svg>
+            `;
+        }
+
+        // --- MOTEUR DE RENDU ---
+        function render() {
+            const appDiv = $('app');
+            appDiv.innerHTML = ''; 
+            
+            if (currentStep === 'intro') appDiv.innerHTML = renderIntro();
+            else if (currentStep === 'lesson') appDiv.innerHTML = renderLesson();
+            else if (currentStep === 'quiz') appDiv.innerHTML = renderQuiz();
+            else if (currentStep === 'result') appDiv.innerHTML = renderResult();
+        }
+
+        function renderIntro() {
+            return `
+                <div class="p-10 text-center bg-gradient-to-b from-pink-100 to-white">
+                    <div class="text-6xl mb-4">🎤✨</div>
+                    <h1 class="text-4xl cartoon-font text-purple-600 mb-6 drop-shadow-sm">Salut ! Je suis Yuna.</h1>
+                    <p class="text-xl text-gray-700 mb-8 font-bold">Aide-moi à lire l'heure pour ne pas être en retard à mon concert ! 🫰</p>
+                    <button onclick="changeStep('lesson')" class="btn-cartoon bg-pink-400 hover:bg-pink-500 text-white text-2xl font-bold py-4 px-10 rounded-full cartoon-font">
+                        Let's go ! 🎵
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderLesson() {
+            return `
+                <div class="p-8 fade-in">
+                    <div class="flex items-center justify-between mb-6 border-b-4 border-purple-200 pb-4">
+                        <h2 class="text-3xl cartoon-font text-purple-700">Les règles de la scène</h2>
+                        <span class="text-4xl">🎧</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div class="bg-purple-50 p-6 rounded-2xl border-2 border-purple-200">
+                            <ul class="text-lg space-y-4 text-gray-700">
+                                ${lessonData.rules.map(rule => `<li class="flex items-start"><span class="mr-2">👉</span> <span>${rule}</span></li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="flex flex-col items-center justify-center">
+                            ${generateClockSVG(10, 10, "150px")}
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex bg-pink-100 p-6 rounded-2xl border-2 border-pink-300 relative">
+                        <div class="text-6xl absolute -top-8 -left-4">🫰</div>
+                        <div class="ml-12 w-full">
+                            <h3 class="cartoon-font text-xl text-pink-800 mb-2">Les astuces de Yuna :</h3>
+                            <ul class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                                ${lessonData.tips.map(tip => `
+                                    <li class="bg-white p-3 rounded-xl shadow-sm font-bold text-gray-700 text-sm border-2 border-pink-200">
+                                        ${tip}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 text-center">
+                        <button onclick="startQuiz()" class="btn-cartoon bg-purple-500 hover:bg-purple-600 text-white text-xl font-bold py-3 px-8 rounded-full cartoon-font">
+                            J'ai compris, aux répétitions ! ✅
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderQuiz() {
+            const q = questions[currentQuestionIndex];
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+
+            let levelLabel = "";
+            let levelColor = "";
+            if(q.level === 1) { levelLabel = "Niveau 1 : Les chiffres"; levelColor = "bg-blue-100 text-blue-800 border-blue-300"; }
+            if(q.level === 2) { levelLabel = "Niveau 2 : Les mots"; levelColor = "bg-purple-100 text-purple-800 border-purple-300"; }
+            if(q.level === 3) { levelLabel = "Niveau 3 : Le grand show !"; levelColor = "bg-pink-100 text-pink-800 border-pink-300"; }
+
+            let content = `
+                <div class="p-8 fade-in">
+                    <!-- En-tête : Progression et Niveau -->
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="px-4 py-1 rounded-full font-bold border-2 text-sm ${levelColor}">${levelLabel}</span>
+                        <p class="text-sm font-bold text-gray-500">Étape ${currentQuestionIndex + 1} / ${questions.length}</p>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-6 border-2 border-gray-300">
+                        <div class="bg-pink-400 h-full rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                    </div>
+
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center leading-relaxed">
+                        ${q.question}
+                    </h2>
+            `;
+
+            // RENDU SELON LE TYPE D'EXERCICE
+            if (q.type === "qcm") {
+                content += `
+                    <div class="flex justify-center mb-6">
+                        <div class="bg-white p-4 rounded-full shadow-inner border-4 border-gray-100">
+                            ${generateClockSVG(q.clock.hours, q.clock.minutes, "160px")}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4" id="choices-container">
+                        ${q.choices.map((choice, index) => `
+                            <button onclick="checkAnswerQCM(${index}, this)" class="choice-btn w-full text-left bg-purple-50 hover:bg-purple-100 border-2 border-purple-200 text-purple-900 font-bold py-4 px-6 rounded-2xl text-lg transition duration-200 transform hover:-translate-y-1">
+                                ${choice}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (q.type === "interactive") {
+                // Initialiser l'horloge interactive à 12:00
+                currentIntH = 12; 
+                currentIntM = 0;
+                
+                content += `
+                    <div class="flex flex-col md:flex-row gap-8 items-center justify-center bg-gray-50 p-6 rounded-3xl border-2 border-gray-200">
+                        <!-- Horloge affichée en direct -->
+                        <div id="interactive-render-target" class="bg-white p-4 rounded-full shadow-inner border-4 border-gray-100">
+                            ${generateClockSVG(currentIntH, currentIntM, "180px")}
+                        </div>
+                        
+                        <!-- Panneau de contrôle SANS affichage des valeurs numériques -->
+                        <div class="w-full md:w-1/2 space-y-6">
+                            <div>
+                                <label class="block text-purple-700 font-bold mb-2">
+                                    Petite aiguille (Heures)
+                                </label>
+                                <input type="range" id="slider-h" min="1" max="12" step="1" value="12" oninput="updateInteractiveClock()">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-pink-600 font-bold mb-2">
+                                    Grande aiguille (Minutes)
+                                </label>
+                                <!-- Les minutes se font par pas de 15 minutes (0, 15, 30, 45) -->
+                                <input type="range" id="slider-m" min="0" max="45" step="15" value="0" oninput="updateInteractiveClock()">
+                            </div>
+
+                            <button id="btn-validate-interactive" onclick="checkAnswerInteractive()" class="w-full btn-cartoon bg-green-500 hover:bg-green-600 text-white text-xl font-bold py-3 px-8 rounded-full cartoon-font mt-4">
+                                ✔️ Valider le réglage
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Zone de feedback partagée
+            content += `
+                    <div id="feedback-area" class="hidden mt-6 p-6 rounded-2xl text-center">
+                        <h3 id="feedback-title" class="cartoon-font text-2xl mb-2"></h3>
+                        <p id="feedback-text" class="text-lg font-bold mb-4"></p>
+                        <button onclick="nextQuestion()" class="btn-cartoon bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-full">
+                            Continuer ➡️
+                        </button>
+                    </div>
+                </div>
+            `;
+            return content;
+        }
+
+        // --- LOGIQUE INTERACTIVE ---
+        function updateInteractiveClock() {
+            currentIntH = parseInt($('slider-h').value);
+            currentIntM = parseInt($('slider-m').value);
+            
+            // Redessiner le SVG (les labels texte ont été supprimés pour éviter la triche)
+            $('interactive-render-target').innerHTML = generateClockSVG(currentIntH, currentIntM, "180px");
+        }
+
+        function showFeedback(isCorrect, textSuccess, textError) {
+            const feedbackArea = $('feedback-area');
+            const feedbackTitle = $('feedback-title');
+            const feedbackText = $('feedback-text');
+
+            feedbackArea.classList.remove('hidden');
+
+            if (isCorrect) {
+                score++;
+                feedbackArea.className = "mt-6 p-6 rounded-2xl text-center bg-green-100 border-2 border-green-400 fade-in";
+                feedbackTitle.className = "cartoon-font text-2xl mb-2 text-green-700";
+                feedbackTitle.innerText = "Bravo ! 🎉";
+                feedbackText.className = "text-lg font-bold mb-4 text-green-800";
+                feedbackText.innerHTML = textSuccess;
+            } else {
+                feedbackArea.className = "mt-6 p-6 rounded-2xl text-center bg-red-100 border-2 border-red-400 fade-in shake";
+                feedbackTitle.className = "cartoon-font text-2xl mb-2 text-red-700";
+                feedbackTitle.innerText = "Oups ! 😕";
+                feedbackText.className = "text-lg font-bold mb-4 text-red-800";
+                feedbackText.innerHTML = textError;
+            }
+        }
+
+        function checkAnswerQCM(selectedIndex, buttonElement) {
+            const q = questions[currentQuestionIndex];
+            const isCorrect = (selectedIndex === q.correctAnswer);
+            
+            // Désactiver les boutons
+            const buttons = document.querySelectorAll('.choice-btn');
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.classList.remove('hover:-translate-y-1', 'hover:bg-purple-100');
+                if(idx !== selectedIndex && idx !== q.correctAnswer) {
+                    btn.classList.add('opacity-40');
+                }
+            });
+
+            // Gérer le style
+            if (isCorrect) {
+                buttonElement.classList.replace('bg-purple-50', 'bg-green-100');
+                buttonElement.classList.replace('border-purple-200', 'border-green-500');
+            } else {
+                buttonElement.classList.replace('bg-purple-50', 'bg-red-100');
+                buttonElement.classList.replace('border-purple-200', 'border-red-500');
+                buttons[q.correctAnswer].classList.replace('bg-purple-50', 'bg-green-50');
+                buttons[q.correctAnswer].classList.replace('border-purple-200', 'border-green-400');
+                buttons[q.correctAnswer].classList.add('border-dashed');
+            }
+
+            showFeedback(isCorrect, q.feedbackSuccess, q.feedbackError);
+        }
+
+        function checkAnswerInteractive() {
+            const q = questions[currentQuestionIndex];
+            
+            let hCorrect = (currentIntH % 12 === q.target.hours % 12);
+            let mCorrect = (currentIntM === q.target.minutes);
+            
+            const isCorrect = hCorrect && mCorrect;
+
+            // Désactiver les contrôles
+            $('slider-h').disabled = true;
+            $('slider-m').disabled = true;
+            $('btn-validate-interactive').disabled = true;
+            $('btn-validate-interactive').classList.add('hidden');
+
+            if(!isCorrect) {
+                // Montrer la correction sur l'horloge
+                $('interactive-render-target').innerHTML = generateClockSVG(q.target.hours, q.target.minutes, "180px");
+                $('interactive-render-target').classList.add('border-red-400', 'bg-red-50');
+            } else {
+                $('interactive-render-target').classList.add('border-green-400', 'bg-green-50');
+            }
+
+            showFeedback(isCorrect, q.feedbackSuccess, q.feedbackError);
+        }
+
+        function renderResult() {
+            let message = "";
+            let emoji = "";
+            if (score === questions.length) {
+                message = "C'est un sans-faute ! Tu es une véritable Idole Kpop !";
+                emoji = "🏆🌟";
+            } else if (score >= questions.length / 2) {
+                message = "C'est très bien ! Encore un peu d'entraînement et tu seras la star du show.";
+                emoji = "⭐🎤";
+            } else {
+                message = "Ne te décourage pas ! Relis bien la leçon de Yuna et réessaie. Fighting !";
+                emoji = "💪✨";
+            }
+
+            return `
+                <div class="p-10 text-center bg-gradient-to-b from-purple-100 to-white fade-in">
+                    <div class="text-6xl mb-4">${emoji}</div>
+                    <h2 class="text-4xl cartoon-font text-purple-700 mb-4">Concert terminé !</h2>
+                    <div class="inline-block bg-white border-4 border-pink-400 rounded-3xl py-6 px-12 shadow-lg mb-6">
+                        <p class="text-2xl text-gray-600 font-bold">Ton score de popularité</p>
+                        <p class="text-6xl cartoon-font text-pink-500">${score} / ${questions.length}</p>
+                    </div>
+                    <p class="text-xl text-gray-700 font-bold mb-8">${message}</p>
+                    
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button onclick="resetApp()" class="btn-cartoon bg-pink-400 hover:bg-pink-500 text-white font-bold py-3 px-6 rounded-full text-lg">
+                            🔄 Rejouer le concert
+                        </button>
+                        <button onclick="changeStep('lesson')" class="btn-cartoon bg-purple-400 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-full text-lg">
+                            🎧 Revoir les règles
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- NAVIGATION ---
+        function changeStep(step) {
+            currentStep = step;
+            render();
+        }
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            changeStep('quiz');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                render();
+            } else {
+                changeStep('result');
+            }
+        }
+
+        function resetApp() {
+            currentStep = 'intro';
+            currentQuestionIndex = 0;
+            score = 0;
+            render();
+        }
+
+        // --- INITIALISATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            render();
+        });
+
+    </script>
+</body>
+</html>
