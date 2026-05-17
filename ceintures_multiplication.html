@@ -229,6 +229,7 @@
         let isWaiting = false;
         let isPracticeMode = false;
         let isTimerHidden = false;
+        let lastFactId = null; // NOUVEAU : Mémorise le dernier calcul pour éviter les doublons
         
         let timeLeft = 60;
         let timerInterval;
@@ -397,59 +398,75 @@
             const belt = belts[currentBeltIndex];
             
             let qText = "";
+            let currentFactId = "";
+            let attempts = 0; // Sécurité pour éviter les boucles infinies sur les toutes petites tables
             
-            if (belt.type === "mult") {
-                let table;
-                // Logique de pondération : 60% nouvelle table, 40% révisions
-                if (belt.reviewTables && belt.reviewTables.length > 0) {
-                    if (Math.random() < 0.6) {
-                        table = belt.tables[Math.floor(Math.random() * belt.tables.length)];
+            // Boucle : on regénère tant qu'on tombe sur le même calcul que la question précédente
+            do {
+                if (belt.type === "mult") {
+                    let table;
+                    // Logique de pondération : 60% nouvelle table, 40% révisions
+                    if (belt.reviewTables && belt.reviewTables.length > 0) {
+                        if (Math.random() < 0.6) {
+                            table = belt.tables[Math.floor(Math.random() * belt.tables.length)];
+                        } else {
+                            table = belt.reviewTables[Math.floor(Math.random() * belt.reviewTables.length)];
+                        }
                     } else {
-                        table = belt.reviewTables[Math.floor(Math.random() * belt.reviewTables.length)];
+                        table = belt.tables[Math.floor(Math.random() * belt.tables.length)];
                     }
-                } else {
-                    table = belt.tables[Math.floor(Math.random() * belt.tables.length)];
-                }
 
-                const maxMultiplier = (belt.name === "Ceinture Noire") ? 12 : 10;
-                const multiplier = Math.floor(Math.random() * maxMultiplier) + 1;
-                
-                if (Math.random() > 0.5) {
-                    qText = `${table} × ${multiplier} =`;
-                } else {
-                    qText = `${multiplier} × ${table} =`;
-                }
-                currentQuestion = { text: qText, type: "standard", correct: table * multiplier };
+                    const maxMultiplier = (belt.name === "Ceinture Noire") ? 12 : 10;
+                    const multiplier = Math.floor(Math.random() * maxMultiplier) + 1;
+                    
+                    // Identifiant unique (ex: 3x4 et 4x3 partagent le même ID : m_3_4)
+                    currentFactId = `m_${Math.min(table, multiplier)}_${Math.max(table, multiplier)}`;
+                    
+                    if (Math.random() > 0.5) {
+                        qText = `${table} × ${multiplier} =`;
+                    } else {
+                        qText = `${multiplier} × ${table} =`;
+                    }
+                    currentQuestion = { text: qText, type: "standard", correct: table * multiplier };
 
-            } else if (belt.type === "div") {
-                const divisor = belt.tables[Math.floor(Math.random() * belt.tables.length)];
-                const quotient = Math.floor(Math.random() * 9) + 2;
-                const dividend = divisor * quotient;
-                qText = `${dividend} : ${divisor} =`;
-                currentQuestion = { text: qText, type: "standard", correct: quotient };
+                } else if (belt.type === "div") {
+                    const divisor = belt.tables[Math.floor(Math.random() * belt.tables.length)];
+                    const quotient = Math.floor(Math.random() * 9) + 2;
+                    const dividend = divisor * quotient;
+                    
+                    currentFactId = `d_${dividend}_${divisor}`;
+                    qText = `${dividend} : ${divisor} =`;
+                    currentQuestion = { text: qText, type: "standard", correct: quotient };
 
-            } else if (belt.type.startsWith("euclidian")) {
-                let d, q;
-                if (belt.type === "euclidian_easy") {
-                    d = Math.floor(Math.random() * 5) + 3; 
-                    q = Math.floor(Math.random() * 8) + 2; 
-                } else if (belt.type === "euclidian_hard") { 
-                    d = Math.floor(Math.random() * 7) + 6; 
-                    q = Math.floor(Math.random() * 11) + 5; 
-                } else { 
-                    d = Math.floor(Math.random() * 6) + 7; 
-                    let minQ = 5;
-                    let maxQ = Math.floor(140 / d);
-                    if (maxQ < minQ) maxQ = minQ + 3;
-                    q = Math.floor(Math.random() * (maxQ - minQ + 1)) + minQ; 
+                } else if (belt.type.startsWith("euclidian")) {
+                    let d, q;
+                    if (belt.type === "euclidian_easy") {
+                        d = Math.floor(Math.random() * 5) + 3; 
+                        q = Math.floor(Math.random() * 8) + 2; 
+                    } else if (belt.type === "euclidian_hard") { 
+                        d = Math.floor(Math.random() * 7) + 6; 
+                        q = Math.floor(Math.random() * 11) + 5; 
+                    } else { 
+                        d = Math.floor(Math.random() * 6) + 7; 
+                        let minQ = 5;
+                        let maxQ = Math.floor(140 / d);
+                        if (maxQ < minQ) maxQ = minQ + 3;
+                        q = Math.floor(Math.random() * (maxQ - minQ + 1)) + minQ; 
+                    }
+                    
+                    const r = Math.floor(Math.random() * (d - 1)) + 1; 
+                    const D = d * q + r;
+                    
+                    currentFactId = `e_${D}_${d}`;
+                    qText = `${D} : ${d} →`;
+                    currentQuestion = { text: qText, type: "euclidian", q: q, r: r };
                 }
                 
-                const r = Math.floor(Math.random() * (d - 1)) + 1; 
-                const D = d * q + r;
-                
-                qText = `${D} : ${d} →`;
-                currentQuestion = { text: qText, type: "euclidian", q: q, r: r };
-            }
+                attempts++;
+            } while (currentFactId === lastFactId && attempts < 10);
+
+            // On sauvegarde l'identifiant pour la prochaine itération
+            lastFactId = currentFactId;
 
             questionText.textContent = currentQuestion.text;
             renderInputZone();
