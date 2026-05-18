@@ -206,49 +206,82 @@
                 <p class="text-2xl text-slate-700 mb-8">Ton score final est de <strong class="text-yellow-500 text-3xl" id="final-score">0</strong> sur 20.</p>
                 <div id="end-message" class="text-xl mb-8 p-4 bg-yellow-50 rounded-xl text-yellow-700 font-medium"></div>
                 <button onclick="restartGame()" class="bg-green-500 hover:bg-green-400 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg transform transition hover:scale-105 active:scale-95">
-                    🔄 Rejouer
+                    🔄 Rejouer (Nouvelles phrases)
                 </button>
             </div>
         </main>
         
         <!-- Pied de page -->
         <footer class="bg-slate-50 text-center py-4 text-slate-400 text-sm border-t border-slate-100">
-            Conçu pour les élèves de CE1 • Étude du Futur Simple • Progression Pédagogique
+            Conçu pour les élèves de CE1 • Étude du Futur Simple • Banque d'items aléatoires
         </footer>
     </div>
 
     <!-- Script JavaScript pour la logique de l'application -->
     <script>
-        // --- DONNÉES DU JEU : Structurées par niveau de difficulté ---
-        const questions = [
+        // --- BANQUE DE DONNÉES (Plus de 50 phrases pour garantir la rejouabilité) ---
+        const allQuestions = [
             // NIVEAU 1 : Échauffement - Verbes réguliers en -ER (QCM)
-            { level: 1, levelName: "Niveau 1 : Échauffement", type: "mcq", text: "Demain, je ______ avec mon chien.", verb: "JOUER", options: ["jouerons", "jouerai", "joueras"], correctAnswer: "jouerai", explanation: "Avec 'je', on ajoute <strong>-ai</strong> au verbe." },
-            { level: 1, levelName: "Niveau 1 : Échauffement", type: "mcq", text: "Ce soir, tu ______ un beau dessin.", verb: "DESSINER", options: ["dessinera", "dessinerai", "dessineras"], correctAnswer: "dessineras", explanation: "Avec 'tu', on ajoute toujours un <strong>-s</strong> à la fin : tu dessiner<strong>as</strong>." },
-            { level: 1, levelName: "Niveau 1 : Échauffement", type: "mcq", text: "Bientôt, nous ______ une chanson.", verb: "CHANTER", options: ["chanterons", "chanteront", "chanterez"], correctAnswer: "chanterons", explanation: "Avec 'nous', la terminaison est toujours <strong>-ons</strong>." },
-            { level: 1, levelName: "Niveau 1 : Échauffement", type: "mcq", text: "La semaine prochaine, vous ______ un film.", verb: "REGARDER", options: ["regarderons", "regarderez", "regarderont"], correctAnswer: "regarderez", explanation: "Avec 'vous', la terminaison est toujours <strong>-ez</strong>." },
-            { level: 1, levelName: "Niveau 1 : Échauffement", type: "mcq", text: "Plus tard, il ______ aux jeux vidéo.", verb: "JOUER", options: ["joueras", "jouera", "jouerai"], correctAnswer: "jouera", explanation: "Avec 'il', on ajoute <strong>-a</strong> au verbe." },
+            { level: 1, type: "mcq", text: "Demain, je ______ avec mon chien.", verb: "JOUER", options: ["jouerons", "jouerai", "joueras"], correctAnswer: "jouerai", explanation: "Avec 'je', on ajoute <strong>-ai</strong> au verbe." },
+            { level: 1, type: "mcq", text: "Ce soir, tu ______ un beau paysage.", verb: "DESSINER", options: ["dessinera", "dessinerai", "dessineras"], correctAnswer: "dessineras", explanation: "Avec 'tu', on ajoute toujours un <strong>-s</strong> à la fin : tu dessiner<strong>as</strong>." },
+            { level: 1, type: "mcq", text: "Bientôt, nous ______ une chanson.", verb: "CHANTER", options: ["chanterons", "chanteront", "chanterez"], correctAnswer: "chanterons", explanation: "Avec 'nous', la terminaison est toujours <strong>-ons</strong>." },
+            { level: 1, type: "mcq", text: "La semaine prochaine, vous ______ un film.", verb: "REGARDER", options: ["regarderons", "regarderez", "regarderont"], correctAnswer: "regarderez", explanation: "Avec 'vous', la terminaison est toujours <strong>-ez</strong>." },
+            { level: 1, type: "mcq", text: "Plus tard, il ______ aux jeux vidéo.", verb: "JOUER", options: ["joueras", "jouera", "jouerai"], correctAnswer: "jouera", explanation: "Avec 'il', on ajoute <strong>-a</strong> au verbe." },
+            { level: 1, type: "mcq", text: "L'année prochaine, elle ______ au spectacle.", verb: "DANSER", options: ["danseras", "dansera", "danserai"], correctAnswer: "dansera", explanation: "Avec 'elle', la terminaison est <strong>-a</strong>." },
+            { level: 1, type: "mcq", text: "Ce week-end, je ______ une glace.", verb: "MANGER", options: ["mangeras", "mangerai", "mangera"], correctAnswer: "mangerai", explanation: "Avec 'je', on ajoute <strong>-ai</strong> au verbe à l'infinitif." },
+            { level: 1, type: "mcq", text: "Bientôt, tu ______ ta chambre.", verb: "RANGER", options: ["rangera", "rangeras", "rangerai"], correctAnswer: "rangeras", explanation: "Avec 'tu', il ne faut pas oublier le <strong>-s</strong> !" },
+            { level: 1, type: "mcq", text: "Demain matin, nous ______ dans la forêt.", verb: "MARCHER", options: ["marcheront", "marcherons", "marcherez"], correctAnswer: "marcherons", explanation: "Avec 'nous', c'est toujours <strong>-ons</strong>." },
+            { level: 1, type: "mcq", text: "Ce soir, vous ______ les volets.", verb: "FERMER", options: ["fermerons", "fermerez", "fermeront"], correctAnswer: "fermerez", explanation: "Avec 'vous', c'est toujours <strong>-ez</strong>." },
+            { level: 1, type: "mcq", text: "Mardi, je ______ mon vélo.", verb: "LAVER", options: ["lavera", "laveras", "laverai"], correctAnswer: "laverai", explanation: "Avec 'je', la terminaison est <strong>-ai</strong>." },
+            { level: 1, type: "mcq", text: "Bientôt, il ______ devant la classe.", verb: "PARLER", options: ["parleras", "parlerai", "parlera"], correctAnswer: "parlera", explanation: "Avec 'il', on ajoute juste un <strong>-a</strong>." },
 
             // NIVEAU 2 : Les pièges - Focus Être et Avoir (QCM)
-            { level: 2, levelName: "Niveau 2 : Les verbes ÊTRE et AVOIR", type: "mcq", text: "Demain, j' ______ un super cadeau.", verb: "AVOIR", options: ["aura", "aurai", "auras"], correctAnswer: "aurai", explanation: "Le verbe 'avoir' avec 'j\'' s'écrit <strong>aurai</strong>." },
-            { level: 2, levelName: "Niveau 2 : Les verbes ÊTRE et AVOIR", type: "mcq", text: "Plus tard, tu ______ un grand astronaute.", verb: "ÊTRE", options: ["seras", "sera", "serai"], correctAnswer: "seras", explanation: "Le verbe 'être' avec 'tu' s'écrit <strong>seras</strong>." },
-            { level: 2, levelName: "Niveau 2 : Les verbes ÊTRE et AVOIR", type: "mcq", text: "Bientôt, elle ______ un nouveau vélo.", verb: "AVOIR", options: ["auras", "aurons", "aura"], correctAnswer: "aura", explanation: "Le verbe 'avoir' avec 'elle' s'écrit <strong>aura</strong>." },
-            { level: 2, levelName: "Niveau 2 : Les verbes ÊTRE et AVOIR", type: "mcq", text: "L'année prochaine, nous ______ au CE2 !", verb: "ÊTRE", options: ["seront", "serons", "serez"], correctAnswer: "serons", explanation: "Le verbe 'être' avec 'nous' s'écrit <strong>serons</strong>." },
-            { level: 2, levelName: "Niveau 2 : Les verbes ÊTRE et AVOIR", type: "mcq", text: "Ce soir, vous ______ de la chance.", verb: "AVOIR", options: ["aurez", "aurons", "auront"], correctAnswer: "aurez", explanation: "Le verbe 'avoir' avec 'vous' s'écrit <strong>aurez</strong>." },
+            { level: 2, type: "mcq", text: "Demain, j' ______ un super cadeau.", verb: "AVOIR", options: ["aura", "aurai", "auras"], correctAnswer: "aurai", explanation: "Le verbe 'avoir' avec 'j\'' s'écrit <strong>aurai</strong>." },
+            { level: 2, type: "mcq", text: "Plus tard, tu ______ un grand astronaute.", verb: "ÊTRE", options: ["seras", "sera", "serai"], correctAnswer: "seras", explanation: "Le verbe 'être' avec 'tu' s'écrit <strong>seras</strong>." },
+            { level: 2, type: "mcq", text: "Bientôt, elle ______ un nouveau vélo.", verb: "AVOIR", options: ["auras", "aurons", "aura"], correctAnswer: "aura", explanation: "Le verbe 'avoir' avec 'elle' s'écrit <strong>aura</strong>." },
+            { level: 2, type: "mcq", text: "L'année prochaine, nous ______ au CE2 !", verb: "ÊTRE", options: ["seront", "serons", "serez"], correctAnswer: "serons", explanation: "Le verbe 'être' avec 'nous' s'écrit <strong>serons</strong>." },
+            { level: 2, type: "mcq", text: "Ce soir, vous ______ de la chance.", verb: "AVOIR", options: ["aurez", "aurons", "auront"], correctAnswer: "aurez", explanation: "Le verbe 'avoir' avec 'vous' s'écrit <strong>aurez</strong>." },
+            { level: 2, type: "mcq", text: "Demain, je ______ le chef de rang.", verb: "ÊTRE", options: ["seras", "serai", "sera"], correctAnswer: "serai", explanation: "Le verbe 'être' avec 'je' s'écrit <strong>serai</strong>." },
+            { level: 2, type: "mcq", text: "Dans un mois, tu ______ huit ans.", verb: "AVOIR", options: ["auras", "aura", "aurai"], correctAnswer: "auras", explanation: "Avec 'tu', n'oublie pas le <strong>-s</strong> : tu auras." },
+            { level: 2, type: "mcq", text: "Ce soir, il ______ fatigué.", verb: "ÊTRE", options: ["seras", "sera", "seront"], correctAnswer: "sera", explanation: "Le verbe 'être' avec 'il' s'écrit <strong>sera</strong>." },
+            { level: 2, type: "mcq", text: "Bientôt, nous ______ un petit chaton.", verb: "AVOIR", options: ["aurez", "auront", "aurons"], correctAnswer: "aurons", explanation: "Le verbe 'avoir' avec 'nous' s'écrit <strong>aurons</strong>." },
+            { level: 2, type: "mcq", text: "Demain, vous ______ en vacances.", verb: "ÊTRE", options: ["serez", "serons", "seront"], correctAnswer: "serez", explanation: "Le verbe 'être' avec 'vous' s'écrit <strong>serez</strong>." },
+            { level: 2, type: "mcq", text: "Plus tard, j' ______ vétérinaire.", verb: "ÊTRE", options: ["sera", "serai", "seras"], correctAnswer: "serai", explanation: "Le verbe 'être' avec 'j\'' s'écrit <strong>serai</strong>." },
 
             // NIVEAU 3 : Mélange et Pluriels (QCM)
-            { level: 3, levelName: "Niveau 3 : On complique un peu !", type: "mcq", text: "Les grenouilles ______ dans la mare.", verb: "SAUTER", options: ["sauteront", "sauterons", "sautera"], correctAnswer: "sauteront", explanation: "'Les grenouilles' c'est comme 'elles' (pluriel). La terminaison est <strong>-ont</strong>." },
-            { level: 3, levelName: "Niveau 3 : On complique un peu !", type: "mcq", text: "Dans un an, ils ______ très grands.", verb: "ÊTRE", options: ["serons", "serez", "seront"], correctAnswer: "seront", explanation: "Le verbe 'être' avec 'ils' s'écrit <strong>seront</strong>." },
-            { level: 3, levelName: "Niveau 3 : On complique un peu !", type: "mcq", text: "Les filles ______ de beaux stylos.", verb: "AVOIR", options: ["aura", "auront", "aurez"], correctAnswer: "auront", explanation: "'Les filles' c'est comme 'elles'. Le verbe 'avoir' s'écrit <strong>auront</strong>." },
-            { level: 3, levelName: "Niveau 3 : On complique un peu !", type: "mcq", text: "On ______ dans la cour de récréation.", verb: "JOUER", options: ["joueront", "jouerai", "jouera"], correctAnswer: "jouera", explanation: "Avec 'on' (singulier), on conjugue comme avec 'il'. On ajoute <strong>-a</strong>." },
-            { level: 3, levelName: "Niveau 3 : On complique un peu !", type: "mcq", text: "Demain matin, le soleil ______ très fort.", verb: "BRILLER", options: ["brillera", "brilleras", "brilleront"], correctAnswer: "brillera", explanation: "'Le soleil', c'est singulier (il). La terminaison est <strong>-a</strong>." },
+            { level: 3, type: "mcq", text: "Les grenouilles ______ dans la mare.", verb: "SAUTER", options: ["sauteront", "sauterons", "sautera"], correctAnswer: "sauteront", explanation: "'Les grenouilles' c'est comme 'elles' (pluriel). La terminaison est <strong>-ont</strong>." },
+            { level: 3, type: "mcq", text: "Dans un an, ils ______ très grands.", verb: "ÊTRE", options: ["serons", "serez", "seront"], correctAnswer: "seront", explanation: "Le verbe 'être' avec 'ils' s'écrit <strong>seront</strong>." },
+            { level: 3, type: "mcq", text: "Les filles ______ de beaux stylos.", verb: "AVOIR", options: ["aura", "auront", "aurez"], correctAnswer: "auront", explanation: "'Les filles' c'est comme 'elles'. Le verbe 'avoir' s'écrit <strong>auront</strong>." },
+            { level: 3, type: "mcq", text: "On ______ dans la cour de récréation.", verb: "JOUER", options: ["joueront", "jouerai", "jouera"], correctAnswer: "jouera", explanation: "Avec 'on' (singulier), on conjugue comme avec 'il'. On ajoute <strong>-a</strong>." },
+            { level: 3, type: "mcq", text: "Demain matin, le soleil ______ très fort.", verb: "BRILLER", options: ["brillera", "brilleras", "brilleront"], correctAnswer: "brillera", explanation: "'Le soleil', c'est singulier (il). La terminaison est <strong>-a</strong>." },
+            { level: 3, type: "mcq", text: "Mes parents ______ la télévision.", verb: "REGARDER", options: ["regarderons", "regarderez", "regarderont"], correctAnswer: "regarderont", explanation: "'Mes parents' c'est comme 'ils' (pluriel). La terminaison est <strong>-ont</strong>." },
+            { level: 3, type: "mcq", text: "Les oiseaux ______ dans le jardin.", verb: "CHANTER", options: ["chanteront", "chantera", "chanterons"], correctAnswer: "chanteront", explanation: "'Les oiseaux' (ils au pluriel) prend la terminaison <strong>-ont</strong>." },
+            { level: 3, type: "mcq", text: "L'équipe ______ le match !", verb: "GAGNER", options: ["gagneront", "gagnera", "gagneras"], correctAnswer: "gagnera", explanation: "'L'équipe' est un mot singulier, on conjugue comme 'elle'." },
+            { level: 3, type: "mcq", text: "Les enfants ______ bien sages.", verb: "ÊTRE", options: ["serons", "seront", "serez"], correctAnswer: "seront", explanation: "Le verbe 'être' au pluriel avec 'ils' s'écrit <strong>seront</strong>." },
+            { level: 3, type: "mcq", text: "On ______ beaucoup de travail.", verb: "AVOIR", options: ["auront", "auras", "aura"], correctAnswer: "aura", explanation: "Le verbe 'avoir' avec 'on' s'écrit <strong>aura</strong>." },
 
             // NIVEAU 4 : Expert - Saisie manuelle (Mots simples sans accents difficiles)
-            { level: 4, levelName: "Niveau 4 : Expert ! À toi d'écrire ⌨️", type: "input", text: "L'année prochaine, tu ______ au basket.", verb: "JOUER", options: [], correctAnswer: "joueras", explanation: "As-tu bien mis le <strong>-s</strong> à la fin ? Avec 'tu', c'est obligatoire : tu jouer<strong>as</strong>." },
-            { level: 4, levelName: "Niveau 4 : Expert ! À toi d'écrire ⌨️", type: "input", text: "Quand je serai grand, je ______ pompier.", verb: "ÊTRE", options: [], correctAnswer: "serai", explanation: "Le verbe 'être' avec 'je' s'écrit <strong>serai</strong>." },
-            { level: 4, levelName: "Niveau 4 : Expert ! À toi d'écrire ⌨️", type: "input", text: "Bientôt, nous ______ des vacances.", verb: "AVOIR", options: [], correctAnswer: "aurons", explanation: "Le verbe 'avoir' avec 'nous' s'écrit <strong>aurons</strong>." },
-            { level: 4, levelName: "Niveau 4 : Expert ! À toi d'écrire ⌨️", type: "input", text: "Ce soir, ils ______ la porte à clé.", verb: "FERMER", options: [], correctAnswer: "fermeront", explanation: "Avec 'ils' (pluriel), on ajoute <strong>-ont</strong> au verbe fermer." },
-            { level: 4, levelName: "Niveau 4 : Expert ! À toi d'écrire ⌨️", type: "input", text: "Dimanche, vous ______ la voiture.", verb: "LAVER", options: [], correctAnswer: "laverez", explanation: "Avec 'vous', la terminaison est toujours <strong>-ez</strong>." }
+            { level: 4, type: "input", text: "L'année prochaine, tu ______ au basket.", verb: "JOUER", options: [], correctAnswer: "joueras", explanation: "As-tu bien mis le <strong>-s</strong> à la fin ? Avec 'tu', c'est obligatoire : tu jouer<strong>as</strong>." },
+            { level: 4, type: "input", text: "Quand je serai grand, je ______ pompier.", verb: "ÊTRE", options: [], correctAnswer: "serai", explanation: "Le verbe 'être' avec 'je' s'écrit <strong>serai</strong>." },
+            { level: 4, type: "input", text: "Bientôt, nous ______ des vacances.", verb: "AVOIR", options: [], correctAnswer: "aurons", explanation: "Le verbe 'avoir' avec 'nous' s'écrit <strong>aurons</strong>." },
+            { level: 4, type: "input", text: "Ce soir, ils ______ la porte à clé.", verb: "FERMER", options: [], correctAnswer: "fermeront", explanation: "Avec 'ils' (pluriel), on ajoute <strong>-ont</strong> au verbe." },
+            { level: 4, type: "input", text: "Dimanche, vous ______ la voiture.", verb: "LAVER", options: [], correctAnswer: "laverez", explanation: "Avec 'vous', la terminaison est toujours <strong>-ez</strong>." },
+            { level: 4, type: "input", text: "Demain, je ______ dans le jardin.", verb: "MARCHER", options: [], correctAnswer: "marcherai", explanation: "Avec 'je', on ajoute <strong>-ai</strong> au verbe à l'infinitif." },
+            { level: 4, type: "input", text: "Ce soir, tu ______ la télévision.", verb: "REGARDER", options: [], correctAnswer: "regarderas", explanation: "N'oublie pas le <strong>-s</strong> de 'tu' !" },
+            { level: 4, type: "input", text: "Bientôt, elle ______ son beau dessin.", verb: "COLORIER", options: [], correctAnswer: "coloriera", explanation: "Avec 'elle', on ajoute juste <strong>-a</strong>." },
+            { level: 4, type: "input", text: "Plus tard, il ______ de la guitare.", verb: "JOUER", options: [], correctAnswer: "jouera", explanation: "Avec 'il', on ajoute <strong>-a</strong>." },
+            { level: 4, type: "input", text: "Demain, ils ______ la chanson de l'école.", verb: "CHANTER", options: [], correctAnswer: "chanteront", explanation: "Avec 'ils', la terminaison est <strong>-ont</strong>." },
+            { level: 4, type: "input", text: "Ce week-end, nous ______ le salon.", verb: "RANGER", options: [], correctAnswer: "rangerons", explanation: "Avec 'nous', on ajoute toujours <strong>-ons</strong>." },
+            { level: 4, type: "input", text: "L'année prochaine, tu ______ au CE2.", verb: "ÊTRE", options: [], correctAnswer: "seras", explanation: "N'oublie pas le <strong>-s</strong> ! Tu seras." }
         ];
+
+        // --- NOMS DES NIVEAUX ---
+        const levelNames = {
+            1: "Niveau 1 : Échauffement",
+            2: "Niveau 2 : Les verbes ÊTRE et AVOIR",
+            3: "Niveau 3 : On complique un peu !",
+            4: "Niveau 4 : Expert ! À toi d'écrire ⌨️"
+        };
 
         // --- ÉTAT DU JEU ---
         let currentIndex = 0;
@@ -284,19 +317,33 @@
 
         // --- FONCTION DE BRASSAGE (SHUFFLE) ---
         function shuffle(array) {
-            return array.sort(() => Math.random() - 0.5);
+            // Créer une copie pour ne pas modifier le tableau original
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
         }
 
-        // --- INITIALISATION DES QUESTIONS ---
+        // --- GÉNÉRATEUR DE PARTIE (5 questions par niveau) ---
         function generateProgressiveQuestions() {
-            // On récupère les questions par niveau et on les mélange au sein de leur niveau
-            const level1 = shuffle(questions.filter(q => q.level === 1));
-            const level2 = shuffle(questions.filter(q => q.level === 2));
-            const level3 = shuffle(questions.filter(q => q.level === 3));
-            const level4 = shuffle(questions.filter(q => q.level === 4));
+            let sessionQuestions = [];
             
-            // On les assemble dans l'ordre de difficulté
-            return [...level1, ...level2, ...level3, ...level4];
+            // Pour chaque niveau (1 à 4)
+            for (let i = 1; i <= 4; i++) {
+                // 1. Filtrer les questions du niveau
+                const questionsForLevel = allQuestions.filter(q => q.level === i);
+                // 2. Les mélanger
+                const shuffledLevel = shuffle(questionsForLevel);
+                // 3. Prendre les 5 premières
+                const selectedForLevel = shuffledLevel.slice(0, 5);
+                // 4. Ajouter le nom du niveau et les pousser dans la session
+                selectedForLevel.forEach(q => {
+                    sessionQuestions.push({...q, levelName: levelNames[i]});
+                });
+            }
+            return sessionQuestions; // Retourne exactement 20 questions
         }
 
         // --- FONCTIONS DE NAVIGATION ---
@@ -336,7 +383,7 @@
             isAnswered = false;
             feedbackContainer.classList.add('hidden');
             gameContainer.classList.remove('hidden');
-            optionsContainer.innerHTML = ''; // Nettoyer le conteneur
+            optionsContainer.innerHTML = ''; 
             
             const q = gameQuestions[currentIndex];
             
@@ -349,7 +396,7 @@
             questionText.innerHTML = q.text.replace('______', `<span class="inline-block min-w-[100px] border-b-4 border-dashed border-sky-300 text-sky-400">...</span>`);
             questionHint.innerText = `(Verbe ${q.verb})`;
 
-            // Rendu conditionnel selon le type de question (QCM ou Saisie)
+            // Rendu conditionnel
             if (q.type === 'mcq') {
                 optionsContainer.className = "grid grid-cols-1 md:grid-cols-3 gap-4";
                 const shuffledOptions = shuffle([...q.options]);
@@ -365,13 +412,11 @@
             else if (q.type === 'input') {
                 optionsContainer.className = "flex flex-col items-center justify-center gap-6 mt-6";
                 
-                // Instructions visuelles pour le niveau expert
                 const instruction = document.createElement('p');
                 instruction.className = "text-indigo-500 font-medium text-lg animate-pulse-fast";
                 instruction.innerText = "✍️ C'est à toi d'écrire le verbe conjugué :";
                 optionsContainer.appendChild(instruction);
 
-                // Champ de saisie
                 const inputWrapper = document.createElement('div');
                 inputWrapper.className = "flex flex-col md:flex-row gap-4 w-full md:w-auto items-center";
                 
@@ -384,7 +429,6 @@
                 input.spellcheck = false;
                 input.onkeypress = (e) => { if(e.key === 'Enter') checkAnswerInput(); };
                 
-                // Bouton Valider
                 const validateBtn = document.createElement('button');
                 validateBtn.id = "btn-validate-input";
                 validateBtn.innerText = "Valider";
@@ -395,7 +439,6 @@
                 inputWrapper.appendChild(validateBtn);
                 optionsContainer.appendChild(inputWrapper);
 
-                // Auto-focus sur l'input (léger délai pour l'affichage)
                 setTimeout(() => { document.getElementById('user-input-answer').focus(); }, 100);
             }
         }
@@ -408,7 +451,6 @@
             const q = gameQuestions[currentIndex];
             const isCorrect = (selectedAnswer === q.correctAnswer);
 
-            // Désactiver tous les boutons
             const allButtons = optionsContainer.querySelectorAll('button');
             allButtons.forEach(btn => {
                 btn.disabled = true;
@@ -435,7 +477,6 @@
             let userVal = inputEl.value.trim().toLowerCase();
             
             if (userVal === "") {
-                // Secouer légèrement l'input si vide
                 inputEl.classList.add('animate-wiggle', 'border-red-400');
                 setTimeout(() => inputEl.classList.remove('animate-wiggle', 'border-red-400'), 500);
                 return; 
@@ -447,6 +488,7 @@
             document.getElementById('btn-validate-input').classList.add('opacity-50');
 
             const q = gameQuestions[currentIndex];
+            // Autorise de petites erreurs d'espaces (trim géré en haut)
             const isCorrect = (userVal === q.correctAnswer.toLowerCase());
 
             if(isCorrect) {
@@ -460,7 +502,7 @@
             processResult(isCorrect, q);
         }
 
-        // Traitement commun du résultat (Score, UI, Feedback)
+        // Traitement du résultat (Score, UI, Feedback)
         function processResult(isCorrect, questionData) {
             if (isCorrect) {
                 score++;
@@ -476,7 +518,6 @@
                 feedbackContainer.className = "mt-8 p-6 rounded-2xl text-center border-4 border-red-400 bg-red-50";
             }
 
-            // Remettre la bonne réponse dans la phrase
             questionText.innerHTML = questionData.text.replace('______', `<span class="${isCorrect ? 'text-green-500' : 'text-red-500'} font-bold underline">${questionData.correctAnswer}</span>`);
             feedbackMessage.innerHTML = questionData.explanation;
             
@@ -525,7 +566,7 @@
             score = 0;
             scoreDisplay.innerText = "0";
             
-            // Re-générer les questions dans le bon ordre (mélangées par niveau)
+            // IMPORTANT : On génère une nouvelle série de 20 questions !
             gameQuestions = generateProgressiveQuestions();
             
             endScreen.classList.add('hidden');
