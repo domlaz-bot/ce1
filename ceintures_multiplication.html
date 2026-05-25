@@ -79,10 +79,16 @@
 
         <div class="p-8 pt-4 shrink-0 bg-white border-t border-gray-100">
             <div class="flex flex-col gap-3">
-                <button onclick="startPractice()" id="btn-practice" class="w-full py-4 bg-sky-100 hover:bg-sky-200 text-sky-800 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl sm:text-2xl border-b-4 border-sky-300 flex items-center justify-center gap-2">
-                    🧠 S'entraîner sans stress
-                </button>
-                <button onclick="startTest()" id="btn-start" class="w-full py-4 bg-green-400 hover:bg-green-500 text-green-900 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl sm:text-2xl border-b-4 border-green-600 flex items-center justify-center gap-2">
+                <div class="flex gap-3">
+                    <button onclick="startPractice()" id="btn-practice" class="flex-1 py-4 bg-sky-100 hover:bg-sky-200 text-sky-800 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-lg border-b-4 border-sky-300 flex items-center justify-center gap-2">
+                        🧠 S'entraîner
+                    </button>
+                    <button onclick="openTableSelection()" class="flex-1 py-4 bg-purple-100 hover:bg-purple-200 text-purple-800 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-lg border-b-4 border-purple-300 flex items-center justify-center gap-2">
+                        🎯 Choisir sa table
+                    </button>
+                </div>
+                
+                <button onclick="startTest()" id="btn-start" class="w-full py-4 bg-green-400 hover:bg-green-500 text-green-900 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl sm:text-2xl border-b-4 border-green-600 flex items-center justify-center gap-2 mt-2">
                     ⏱️ Passer le test (1 min)
                 </button>
                 <button onclick="hardReset()" id="btn-reset" class="hidden w-full py-3 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-colors text-lg">
@@ -148,6 +154,19 @@
         </div>
     </main>
 
+    <!-- Modal Choix de Table Spécifique -->
+    <div id="table-selection-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full text-center shadow-2xl relative overflow-hidden animate-pop">
+            <button onclick="closeTableSelection()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 rounded-full font-bold transition-colors">✕</button>
+            <h2 class="text-2xl font-black text-purple-900 mb-2">Entraînement libre</h2>
+            <p class="text-gray-600 font-bold mb-6">Quelle table souhaites-tu réviser ?</p>
+            
+            <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-6" id="specific-tables-grid">
+                <!-- Généré dynamiquement en JS (tables 2 à 10) -->
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Temps Écoulé -->
     <div id="timeout-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-pop border-4 border-red-400 relative overflow-hidden">
@@ -165,7 +184,10 @@
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-pop border-4 border-yellow-400 relative overflow-hidden">
             <div class="text-6xl mb-4">🎉</div>
             <h2 class="text-3xl font-black text-gray-800 mb-2">Cible atteinte !</h2>
-            <p class="text-lg text-gray-600 font-bold mb-6">Bravo, tu débloques la <br><span id="new-belt-name" class="text-xl">Ceinture Jaune</span> !</p>
+            <p class="text-lg text-gray-600 font-bold mb-4">Bravo, tu débloques la <br><span id="new-belt-name" class="text-xl">Ceinture Jaune</span> !</p>
+            <div class="bg-sky-50 rounded-xl p-3 mb-6 border-2 border-sky-100">
+                <span class="text-sky-800 font-black text-lg">⏱️ Objectif atteint en : <br><span id="level-up-time" class="text-2xl text-sky-600"></span></span>
+            </div>
             <button onclick="startNextBelt()" class="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
                 Continuer 🚀
             </button>
@@ -177,7 +199,10 @@
         <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl animate-pop border-8 border-gray-800 relative overflow-hidden">
             <div class="text-7xl mb-4">🏆🥷</div>
             <h2 class="text-4xl font-black text-gray-800 mb-4">MAÎTRE ABSOLU !</h2>
-            <p class="text-xl text-gray-600 font-bold mb-6">Tu as vaincu le chronomètre et obtenu la Ceinture Or !</p>
+            <p class="text-xl text-gray-600 font-bold mb-4">Tu as vaincu le chronomètre et obtenu la Ceinture Or !</p>
+            <div class="bg-sky-50 rounded-xl p-3 mb-6 border-2 border-sky-100">
+                <span class="text-sky-800 font-black text-lg">⏱️ Ultime défi réussi en : <br><span id="victory-time" class="text-2xl text-sky-600"></span></span>
+            </div>
             <button onclick="hardReset()" class="w-full py-4 bg-sky-500 hover:bg-sky-600 text-white font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
                 Recommencer l'aventure 🔄
             </button>
@@ -188,10 +213,13 @@
     <div id="practice-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-pop border-4 border-sky-400 relative overflow-hidden">
             <div class="text-6xl mb-4">🧠✨</div>
-            <h2 class="text-3xl font-black text-gray-800 mb-2">Super entraînement !</h2>
-            <p class="text-lg text-gray-600 font-bold mb-6">Tu as bien révisé ta ceinture. Es-tu prêt(e) pour le défi chronométré ?</p>
+            <h2 class="text-3xl font-black text-gray-800 mb-2" id="practice-title">Super entraînement !</h2>
+            <p class="text-lg text-gray-600 font-bold mb-4" id="practice-desc">Tu as bien révisé ta ceinture. Es-tu prêt(e) pour le défi chronométré ?</p>
+            <div class="bg-sky-50 rounded-xl p-3 mb-6 border-2 border-sky-100">
+                <span class="text-sky-800 font-black text-lg">⏱️ Temps d'entraînement : <br><span id="practice-time" class="text-2xl text-sky-600"></span></span>
+            </div>
             <div class="flex flex-col gap-3">
-                <button onclick="startTestFromPractice()" class="w-full py-4 bg-green-400 hover:bg-green-500 text-green-900 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
+                <button id="btn-practice-to-test" onclick="startTestFromPractice()" class="w-full py-4 bg-green-400 hover:bg-green-500 text-green-900 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
                     ⏱️ Lancer le test !
                 </button>
                 <button onclick="goHome()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors text-lg">
@@ -215,7 +243,7 @@
             { name: "Ceinture Mauve",      tables: [2, 3, 4, 5, 6, 7, 8, 9], reviewTables: [], type: "div", target: 10, colorClass: "bg-purple-400",     badgeColor: "bg-purple-400 border-purple-500 text-white", textColor: "text-white", icon: "🪻", desc: "Divisions exactes" },
             { name: "Ceinture Violette",   tables: [], reviewTables: [], type: "euclidian_easy", target: 6, colorClass: "bg-fuchsia-600",    badgeColor: "bg-fuchsia-600 border-fuchsia-700 text-white", textColor: "text-white", icon: "💜", desc: "Divisions euclidiennes simples" },
             { name: "Ceinture Marron",     tables: [], reviewTables: [], type: "euclidian_hard", target: 8, colorClass: "bg-amber-800",      badgeColor: "bg-amber-800 border-amber-900 text-white", textColor: "text-white", icon: "🤎", desc: "Divisions euclidiennes complexes" },
-            { name: "Ceinture Noire",      tables: [11, 12], reviewTables: [6, 7, 8, 9], type: "mult", target: 20, colorClass: "bg-gray-800",       badgeColor: "bg-gray-800 border-gray-900 text-white", textColor: "text-white", icon: "🖤", desc: "Tables 11-12 (+révisions 6-9)" },
+            { name: "Ceinture Noire",      tables: [6, 7, 8, 9, 10], reviewTables: [2, 3, 4, 5], type: "mult", target: 20, colorClass: "bg-gray-800",       badgeColor: "bg-gray-800 border-gray-900 text-white", textColor: "text-white", icon: "🖤", desc: "Toutes les tables (Mélange)" },
             { name: "Brillante Bronze",    tables: [], reviewTables: [], type: "euclidian_expert", target: 8, colorClass: "bg-orange-400", badgeColor: "bg-gradient-to-r from-orange-400 to-yellow-600 border-orange-500 text-white", textColor: "text-white", icon: "🥉", desc: "Grands nombres (avec reste)" },
             { name: "Brillante Argent",    tables: [], reviewTables: [], type: "euclidian_expert", target: 12, colorClass: "bg-slate-300", badgeColor: "bg-gradient-to-r from-slate-200 to-slate-400 border-slate-400 text-slate-800", textColor: "text-slate-900", icon: "🥈", desc: "Grands nombres (Vitesse)" },
             { name: "Brillante Or",        tables: [], reviewTables: [], type: "euclidian_expert", target: 15, colorClass: "bg-yellow-400", badgeColor: "bg-gradient-to-r from-yellow-300 to-yellow-500 border-yellow-500 text-yellow-900", textColor: "text-yellow-900", icon: "🥇", desc: "L'épreuve ultime ! (reste)" }
@@ -229,9 +257,14 @@
         let isWaiting = false;
         let isPracticeMode = false;
         let isTimerHidden = false;
-        let lastFactId = null; // NOUVEAU : Mémorise le dernier calcul pour éviter les doublons
         
+        // NOUVEAU : On garde en mémoire TOUS les calculs posés dans la session courante.
+        let askedQuestionsHistory = new Set(); 
+        
+        let selectedSpecificTable = null;
+
         let timeLeft = 60;
+        let timeElapsed = 0; 
         let timerInterval;
         const SAVE_KEY = "multiplications_chrono_save";
 
@@ -263,10 +296,13 @@
         const victoryModal = document.getElementById('victory-modal');
         const practiceModal = document.getElementById('practice-modal');
         const btnToggleTimer = document.getElementById('btn-toggle-timer');
+        const tableSelectionModal = document.getElementById('table-selection-modal');
+        const specificTablesGrid = document.getElementById('specific-tables-grid');
 
         // === INITIALISATION ===
         function initApp() {
             generateHomeBelts();
+            generateSpecificTablesGrid();
             loadProgress();
         }
 
@@ -322,8 +358,20 @@
             });
         }
 
+        function generateSpecificTablesGrid() {
+            specificTablesGrid.innerHTML = '';
+            for(let i = 2; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = "py-3 bg-purple-50 border-2 border-purple-200 text-purple-800 font-black text-xl rounded-xl hover:bg-purple-500 hover:text-white hover:border-purple-600 transition-colors shadow-sm";
+                btn.textContent = i;
+                btn.onclick = () => startSpecificTablePractice(i);
+                specificTablesGrid.appendChild(btn);
+            }
+        }
+
         // === NAVIGATION ===
         function startPractice() {
+            selectedSpecificTable = null; 
             isPracticeMode = true;
             homeScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
@@ -332,6 +380,7 @@
         }
 
         function startTest() {
+            selectedSpecificTable = null; 
             isPracticeMode = false;
             homeScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
@@ -343,12 +392,30 @@
             startTest();
         }
 
+        function openTableSelection() {
+            tableSelectionModal.classList.remove('hidden');
+        }
+
+        function closeTableSelection() {
+            tableSelectionModal.classList.add('hidden');
+        }
+
+        function startSpecificTablePractice(tableNumber) {
+            closeTableSelection();
+            selectedSpecificTable = tableNumber;
+            isPracticeMode = true;
+            homeScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            startLevel();
+        }
+
         function goHome() {
             clearInterval(timerInterval);
+            selectedSpecificTable = null;
             gameScreen.classList.add('hidden');
             homeScreen.classList.remove('hidden');
             practiceModal.classList.add('hidden');
-            generateHomeBelts(); // Met à jour les cadenas
+            generateHomeBelts(); 
             loadProgress();
         }
 
@@ -356,26 +423,34 @@
         function startLevel() {
             currentScore = 0;
             timeLeft = 60;
+            timeElapsed = 0;
             isWaiting = false;
+            
+            // On vide l'historique des questions pour cette nouvelle session
+            askedQuestionsHistory.clear();
             
             updateBeltUI();
             updateScoreUI();
             updateTimerUI();
             
             clearInterval(timerInterval);
-            if (!isPracticeMode) {
-                timerInterval = setInterval(gameTick, 1000);
-            }
+            timerInterval = setInterval(gameTick, 1000); 
             
             generateQuestion();
         }
 
         function gameTick() {
-            timeLeft--;
-            updateTimerUI();
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                handleTimeout();
+            timeElapsed++;
+            
+            if (!isPracticeMode) {
+                timeLeft--;
+                updateTimerUI();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            } else {
+                updateTimerUI(); 
             }
         }
 
@@ -399,13 +474,26 @@
             
             let qText = "";
             let currentFactId = "";
-            let attempts = 0; // Sécurité pour éviter les boucles infinies sur les toutes petites tables
+            let attempts = 0; 
             
-            // Boucle : on regénère tant qu'on tombe sur le même calcul que la question précédente
+            // Boucle : on cherche une question INÉDITE dans l'historique
             do {
-                if (belt.type === "mult") {
+                if (selectedSpecificTable !== null) {
+                    const table = selectedSpecificTable;
+                    const maxMultiplier = 10; 
+                    const multiplier = Math.floor(Math.random() * maxMultiplier) + 1;
+                    
+                    currentFactId = `m_${Math.min(table, multiplier)}_${Math.max(table, multiplier)}`;
+                    
+                    if (Math.random() > 0.5) {
+                        qText = `${table} × ${multiplier} =`;
+                    } else {
+                        qText = `${multiplier} × ${table} =`;
+                    }
+                    currentQuestion = { text: qText, type: "standard", correct: table * multiplier };
+
+                } else if (belt.type === "mult") {
                     let table;
-                    // Logique de pondération : 60% nouvelle table, 40% révisions
                     if (belt.reviewTables && belt.reviewTables.length > 0) {
                         if (Math.random() < 0.6) {
                             table = belt.tables[Math.floor(Math.random() * belt.tables.length)];
@@ -416,10 +504,9 @@
                         table = belt.tables[Math.floor(Math.random() * belt.tables.length)];
                     }
 
-                    const maxMultiplier = (belt.name === "Ceinture Noire") ? 12 : 10;
+                    const maxMultiplier = 10; 
                     const multiplier = Math.floor(Math.random() * maxMultiplier) + 1;
                     
-                    // Identifiant unique (ex: 3x4 et 4x3 partagent le même ID : m_3_4)
                     currentFactId = `m_${Math.min(table, multiplier)}_${Math.max(table, multiplier)}`;
                     
                     if (Math.random() > 0.5) {
@@ -445,12 +532,11 @@
                         q = Math.floor(Math.random() * 8) + 2; 
                     } else if (belt.type === "euclidian_hard") { 
                         d = Math.floor(Math.random() * 7) + 6; 
-                        q = Math.floor(Math.random() * 11) + 5; 
+                        q = Math.floor(Math.random() * 6) + 5; 
                     } else { 
                         d = Math.floor(Math.random() * 6) + 7; 
                         let minQ = 5;
-                        let maxQ = Math.floor(140 / d);
-                        if (maxQ < minQ) maxQ = minQ + 3;
+                        let maxQ = 10; 
                         q = Math.floor(Math.random() * (maxQ - minQ + 1)) + minQ; 
                     }
                     
@@ -463,16 +549,25 @@
                 }
                 
                 attempts++;
-            } while (currentFactId === lastFactId && attempts < 10);
+                
+                // SÉCURITÉ : Si on n'arrive pas à trouver une question inédite après 50 essais
+                // Cela veut dire que l'on a épuisé toutes les combinaisons possibles (le "réservoir" est vide).
+                // On efface alors la mémoire pour permettre au jeu de continuer.
+                if (attempts > 50) {
+                    askedQuestionsHistory.clear();
+                    break;
+                }
+                
+            } while (askedQuestionsHistory.has(currentFactId));
 
-            // On sauvegarde l'identifiant pour la prochaine itération
-            lastFactId = currentFactId;
+            // On ajoute la question choisie à l'historique
+            askedQuestionsHistory.add(currentFactId);
 
             questionText.textContent = currentQuestion.text;
             renderInputZone();
         }
 
-        // === GESTION DE LA SAISIE (NOUVEAU) ===
+        // === GESTION DE LA SAISIE ===
         function renderInputZone() {
             inputZone.innerHTML = '';
             
@@ -491,7 +586,6 @@
                 btn.addEventListener('click', handleValidation);
                 
             } else {
-                // Interface spéciale pour division Euclidienne
                 inputZone.innerHTML = `
                     <div class="flex gap-4 w-full">
                         <div class="flex-1 flex flex-col items-center">
@@ -562,12 +656,11 @@
             if (isCorrect) {
                 isWaiting = true;
                 
-                // Style de réussite sur les inputs
                 inputsToStyle.forEach(inp => {
                     inp.classList.replace('border-sky-200', 'border-green-500');
                     inp.classList.replace('text-sky-900', 'text-green-700');
                     inp.classList.add('bg-green-100', 'scale-105');
-                    inp.disabled = true; // Empêcher la modification pendant l'animation
+                    inp.disabled = true; 
                 });
                 
                 if (isFirstTry) {
@@ -592,7 +685,6 @@
             } else {
                 isFirstTry = false;
                 
-                // Style d'erreur sur les inputs
                 inputsToStyle.forEach(inp => {
                     inp.classList.replace('border-sky-200', 'border-red-500');
                     inp.classList.replace('text-sky-900', 'text-red-700');
@@ -604,15 +696,23 @@
                         inp.classList.replace('border-red-500', 'border-sky-200');
                         inp.classList.replace('text-red-700', 'text-sky-900');
                         inp.classList.remove('bg-red-50', 'animate-shake');
-                        inp.value = ''; // On vide pour laisser retenter
+                        inp.value = ''; 
                     });
-                    inputsToStyle[0].focus(); // On redonne le focus au premier champ
+                    inputsToStyle[0].focus(); 
                 }, 500);
             }
         }
 
         // === UI ===
         function updateBeltUI() {
+            if (selectedSpecificTable !== null) {
+                beltNameEl.textContent = `Table de ${selectedSpecificTable}`;
+                beltIconEl.textContent = "🎯";
+                beltInstructionEl.textContent = "Entraînement libre";
+                headerBg.className = `pt-6 pb-4 px-6 text-center transition-colors duration-500 rounded-t-[1.5rem] bg-purple-200 text-purple-900`;
+                return;
+            }
+
             const belt = belts[currentBeltIndex];
             beltNameEl.textContent = belt.name;
             beltIconEl.textContent = belt.icon;
@@ -633,7 +733,6 @@
             btnToggleTimer.title = isTimerHidden ? 'Afficher le chrono' : 'Cacher le chrono';
             updateTimerUI();
             
-            // On redonne le focus à l'input pour ne pas perturber la saisie
             const firstInput = document.querySelector('#input-zone input');
             if (firstInput) firstInput.focus();
         }
@@ -666,8 +765,31 @@
         }
 
         // === GESTION DES NIVEAUX ===
+        function formatTime(totalSeconds) {
+            if (totalSeconds < 60) return totalSeconds + " s";
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            return `${m} min ${s > 0 ? s + " s" : ""}`;
+        }
+
         function triggerPracticeComplete() {
             shootConfetti();
+            document.getElementById('practice-time').textContent = formatTime(timeElapsed);
+            
+            const titleEl = document.getElementById('practice-title');
+            const descEl = document.getElementById('practice-desc');
+            const btnTest = document.getElementById('btn-practice-to-test');
+
+            if (selectedSpecificTable !== null) {
+                titleEl.textContent = "Table maîtrisée !";
+                descEl.textContent = `Tu as terminé l'entraînement sur la table de ${selectedSpecificTable}.`;
+                btnTest.classList.add('hidden'); 
+            } else {
+                titleEl.textContent = "Super entraînement !";
+                descEl.textContent = "Tu as bien révisé ta ceinture. Es-tu prêt(e) pour le défi chronométré ?";
+                btnTest.classList.remove('hidden');
+            }
+
             practiceModal.classList.remove('hidden');
         }
 
@@ -675,6 +797,7 @@
             shootConfetti();
             
             if (currentBeltIndex >= belts.length - 1) {
+                document.getElementById('victory-time').textContent = formatTime(timeElapsed);
                 victoryModal.classList.remove('hidden');
             } else {
                 currentBeltIndex++;
@@ -686,6 +809,7 @@
                 let titleColor = nextBelt.textColor === 'text-white' ? 'text-sky-800' : nextBelt.textColor;
                 newBeltNameEl.className = `text-2xl font-black ${titleColor}`;
                 
+                document.getElementById('level-up-time').textContent = formatTime(timeElapsed);
                 levelUpModal.classList.remove('hidden');
             }
         }
