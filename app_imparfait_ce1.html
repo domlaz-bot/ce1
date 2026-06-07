@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Imparfait !</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff;
+            background-image: radial-gradient(#bae6fd 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+        .cartoon-shadow {
+            box-shadow: 0 8px 0px rgba(0, 0, 0, 0.15);
+            transition: all 0.1s ease;
+        }
+        .cartoon-shadow:active {
+            box-shadow: 0 0px 0px rgba(0, 0, 0, 0.15);
+            transform: translateY(8px);
+        }
+        .btn-hover:hover {
+            transform: scale(1.05);
+        }
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+        .animate-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+        
+        /* Cacher les écrans non actifs */
+        .hidden-screen { display: none !important; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- ECRAN D'ACCUEIL -->
+    <div id="home-screen" class="bg-white rounded-[40px] p-8 max-w-3xl w-full shadow-2xl border-4 border-sky-300 text-center animate-pop">
+        <h1 class="text-5xl md:text-6xl font-black text-sky-500 mb-6 drop-shadow-md">
+            🚀 Mission Imparfait !
+        </h1>
+        <p class="text-xl text-slate-600 mb-8 font-semibold">
+            Entraîne-toi avec les verbes du 1er groupe (en -er).
+        </p>
+
+        <!-- Rappel de leçon -->
+        <div class="bg-sky-50 rounded-3xl p-6 mb-8 border-2 border-sky-200">
+            <h2 class="text-2xl font-bold text-sky-600 mb-4 flex items-center justify-center gap-2">
+                <span>💡</span> Petite leçon avant de commencer :
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-lg font-bold text-slate-700">
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100">Je / J' <span class="text-pink-500">-ais</span></div>
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100">Tu <span class="text-pink-500">-ais</span></div>
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100">Il/Elle/On <span class="text-pink-500">-ait</span></div>
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100">Nous <span class="text-pink-500">-ions</span></div>
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100">Vous <span class="text-pink-500">-iez</span></div>
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100">Ils/Elles <span class="text-pink-500">-aient</span></div>
+            </div>
+            <p class="mt-4 text-slate-500 italic">Astuce : Prends le début du verbe (le radical) et ajoute la terminaison !</p>
+        </div>
+
+        <button onclick="startGame()" class="bg-green-400 text-white text-2xl font-black py-4 px-10 rounded-full cartoon-shadow btn-hover border-4 border-green-500 w-full md:w-auto">
+            ▶️ JOUER !
+        </button>
+    </div>
+
+    <!-- ECRAN DE JEU -->
+    <div id="game-screen" class="bg-white rounded-[40px] p-6 md:p-8 max-w-3xl w-full shadow-2xl border-4 border-sky-300 hidden-screen">
+        
+        <!-- Barre de progression -->
+        <div class="mb-6 flex items-center justify-between gap-4">
+            <div class="flex-1 bg-slate-200 h-6 rounded-full overflow-hidden border-2 border-slate-300">
+                <div id="progress-bar" class="bg-green-400 h-full w-0 transition-all duration-500 ease-out"></div>
+            </div>
+            <span id="question-counter" class="text-xl font-black text-slate-500 whitespace-nowrap">1 / 10</span>
+        </div>
+
+        <div id="question-container" class="animate-pop min-h-[250px] flex flex-col justify-center">
+            <!-- Consigne -->
+            <p id="instruction" class="text-lg md:text-xl font-bold text-sky-500 text-center mb-2 uppercase tracking-wide"></p>
+            
+            <!-- Phrase -->
+            <p id="sentence" class="text-2xl md:text-4xl font-extrabold text-slate-700 text-center mb-8 leading-tight"></p>
+
+            <!-- Zone de réponse (QCM ou Input) -->
+            <div id="answers-area" class="w-full max-w-lg mx-auto"></div>
+        </div>
+
+        <!-- Feedback Area -->
+        <div id="feedback-area" class="mt-6 hidden rounded-2xl p-6 text-center border-4">
+            <h3 id="feedback-title" class="text-3xl font-black mb-2"></h3>
+            <p id="feedback-text" class="text-xl font-semibold mb-6"></p>
+            <button id="next-btn" onclick="nextQuestion()" class="bg-sky-400 text-white text-xl font-black py-3 px-8 rounded-full cartoon-shadow btn-hover border-4 border-sky-500">
+                Question suivante ➡️
+            </button>
+        </div>
+    </div>
+
+    <!-- ECRAN DE FIN -->
+    <div id="end-screen" class="bg-white rounded-[40px] p-8 max-w-3xl w-full shadow-2xl border-4 border-amber-300 text-center hidden-screen">
+        <h1 class="text-5xl md:text-6xl font-black text-amber-500 mb-6 drop-shadow-md">
+            🏆 Mission accomplie !
+        </h1>
+        <div class="text-9xl mb-6">⭐</div>
+        <p class="text-2xl text-slate-600 mb-2 font-bold">
+            Ton score final :
+        </p>
+        <p id="final-score" class="text-6xl font-black text-green-500 mb-8"></p>
+        
+        <p id="end-message" class="text-xl text-slate-500 font-semibold mb-8"></p>
+
+        <button onclick="startGame()" class="bg-sky-400 text-white text-2xl font-black py-4 px-10 rounded-full cartoon-shadow btn-hover border-4 border-sky-500 w-full md:w-auto">
+            🔄 Rejouer avec d'autres phrases
+        </button>
+    </div>
+
+    <script>
+        // --- DONNÉES PÉDAGOGIQUES ---
+        const pronouns = [
+            { text: "je", ending: "ais", elision: true },
+            { text: "tu", ending: "ais", elision: false },
+            { text: "il", ending: "ait", elision: false },
+            { text: "elle", ending: "ait", elision: false },
+            { text: "on", ending: "ait", elision: false },
+            { text: "nous", ending: "ions", elision: false },
+            { text: "vous", ending: "iez", elision: false },
+            { text: "ils", ending: "aient", elision: false },
+            { text: "elles", ending: "aient", elision: false }
+        ];
+
+        const allEndings = ["ais", "ait", "ions", "iez", "aient"];
+
+        // Verbes du 1er groupe (sans particularités complexes pour commencer, pas de -ger ni -cer pour le moment)
+        const verbs = [
+            { inf: "jouer", stem: "jou", vowelStart: false, templates: [
+                "Avant, {p} {v} dans le jardin.", "Chaque soir, {p} {v} aux cartes.", "Pendant les vacances, {p} {v} au ballon."
+            ]},
+            { inf: "chanter", stem: "chant", vowelStart: false, templates: [
+                "Tous les matins, {p} {v} une belle chanson.", "À la chorale, {p} {v} très fort.", "Sous la douche, {p} {v} faux."
+            ]},
+            { inf: "sauter", stem: "saut", vowelStart: false, templates: [
+                "Dans la cour, {p} {v} à la corde.", "Sur le lit, {p} {v} comme des kangourous.", "De joie, {p} {v} très haut."
+            ]},
+            { inf: "regarder", stem: "regard", vowelStart: false, templates: [
+                "Le soir, {p} {v} les étoiles.", "À la télé, {p} {v} les dessins animés.", "Par la fenêtre, {p} {v} la pluie tomber."
+            ]},
+            { inf: "écouter", stem: "écout", vowelStart: true, templates: [
+                "Dans la voiture, {p} {v} de la musique.", "En classe, {p} {v} le maître.", "Avant de dormir, {p} {v} une histoire."
+            ]},
+            { inf: "aimer", stem: "aim", vowelStart: true, templates: [
+                "Quand j'étais petit, {p} {v} le chocolat.", "Beaucoup, {p} {v} faire des câlins.", "À l'école, {p} {v} dessiner."
+            ]},
+            { inf: "parler", stem: "parl", vowelStart: false, templates: [
+                "À la récréation, {p} {v} avec nos amis.", "Au téléphone, {p} {v} longtemps.", "Dans la classe, {p} {v} doucement."
+            ]},
+            { inf: "dessiner", stem: "dessin", vowelStart: false, templates: [
+                "Sur mon cahier, {p} {v} des animaux.", "Avec des feutres, {p} {v} des monstres.", "Souvent, {p} {v} de belles maisons."
+            ]},
+            { inf: "marcher", stem: "march", vowelStart: false, templates: [
+                "Pour aller à l'école, {p} {v} vite.", "Dans la forêt, {p} {v} sans faire de bruit.", "Sur le sable, {p} {v} pieds nus."
+            ]},
+            { inf: "pleurer", stem: "pleur", vowelStart: false, templates: [
+                "Quand j'étais bébé, {p} {v} pour avoir mon doudou.", "Parfois, {p} {v} quand on tombait.", "Dans ce film triste, {p} {v} un peu."
+            ]},
+            { inf: "laver", stem: "lav", vowelStart: false, templates: [
+                "Le dimanche, {p} {v} la voiture.", "Avant le repas, {p} {v} les mains.", "Dans la rivière, {p} {v} le linge."
+            ]},
+            { inf: "fermer", stem: "ferm", vowelStart: false, templates: [
+                "Le soir, {p} {v} les volets.", "En partant, {p} {v} la porte à clé.", "À cause du vent, {p} {v} les fenêtres."
+            ]},
+            { inf: "porter", stem: "port", vowelStart: false, templates: [
+                "En hiver, {p} {v} un gros manteau.", "Pour le spectacle, {p} {v} un chapeau.", "Avec soin, {p} {v} les verres fragiles."
+            ]},
+            { inf: "rêver", stem: "rêv", vowelStart: false, templates: [
+                "La nuit, {p} {v} de monstres gentils.", "Souvent, {p} {v} de voler comme un oiseau.", "Dans son lit, {p} {v} doucement."
+            ]},
+            { inf: "voler", stem: "vol", vowelStart: false, templates: [
+                "Haut dans le ciel, {p} {v} parmi les nuages.", "Au-dessus de l'eau, {p} {v} très vite.", "Dans le conte, {p} {v} sur un tapis magique."
+            ]}
+        ];
+
+        // --- VARIABLES D'ÉTAT ---
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        const totalQuestions = 20; // 10 QCM progressifs, 10 Textes à trous
+
+        // --- GÉNÉRATION DES QUESTIONS ---
+        function generateQuestions() {
+            questions = [];
+            // Mélanger les verbes et pronoms pour avoir de la variété
+            let shuffledVerbs = [...verbs].sort(() => 0.5 - Math.random());
+            
+            for (let i = 0; i < totalQuestions; i++) {
+                // Choisir un verbe au hasard (on boucle si on dépasse le nombre de verbes)
+                let verb = shuffledVerbs[i % shuffledVerbs.length];
+                
+                // Choisir un pronom au hasard
+                let pronounObj = pronouns[Math.floor(Math.random() * pronouns.length)];
+                
+                // Gérer l'élision (ex: je + aimer -> j'aimais)
+                let displayPronoun = pronounObj.text;
+                if (pronounObj.elision && verb.vowelStart && displayPronoun === "je") {
+                    displayPronoun = "j'";
+                } else if (displayPronoun !== "j'") {
+                    displayPronoun += " ";
+                }
+
+                // Choisir une phrase au hasard pour ce verbe
+                let template = verb.templates[Math.floor(Math.random() * verb.templates.length)];
+                
+                let correctAnswer = verb.stem + pronounObj.ending;
+                let isElision = displayPronoun === "j'";
+                
+                // Progressivité : 10 QCM, puis 10 questions à l'écrit
+                let type = i < 10 ? "mcq" : "input";
+
+                questions.push({
+                    type: type,
+                    verbInf: verb.inf,
+                    stem: verb.stem,
+                    pronoun: pronounObj.text,
+                    displayPronoun: displayPronoun.trim(),
+                    ending: pronounObj.ending,
+                    correctAnswer: correctAnswer,
+                    sentenceTemplate: template,
+                    isElision: isElision
+                });
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- LOGIQUE DE L'INTERFACE ---
+        function showScreen(screenId) {
+            document.getElementById('home-screen').classList.add('hidden-screen');
+            document.getElementById('game-screen').classList.add('hidden-screen');
+            document.getElementById('end-screen').classList.add('hidden-screen');
+            document.getElementById(screenId).classList.remove('hidden-screen');
+        }
+
+        function startGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            generateQuestions();
+            showScreen('game-screen');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestionIndex];
+            
+            // Mise à jour de la progression
+            document.getElementById('question-counter').innerText = `${currentQuestionIndex + 1} / ${totalQuestions}`;
+            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex) / totalQuestions) * 100}%`;
+            
+            // Reset feedback
+            document.getElementById('feedback-area').classList.add('hidden');
+            const answersArea = document.getElementById('answers-area');
+            answersArea.innerHTML = '';
+            
+            // Consigne
+            const instructionEl = document.getElementById('instruction');
+            if (q.type === 'mcq') {
+                instructionEl.innerText = "Choisis la bonne réponse :";
+            } else {
+                instructionEl.innerText = "Écris le verbe à l'imparfait :";
+            }
+
+            // Préparation de la phrase avec le trou
+            let sentenceHtml = q.sentenceTemplate
+                .replace('{p}', `<span class="text-pink-500">${q.displayPronoun}</span>`)
+                .replace('{v}', `[ <span class="text-sky-400 italic">${q.verbInf}</span> ]`);
+            
+            if (q.type === 'mcq') {
+                sentenceHtml = sentenceHtml.replace(`[ <span class="text-sky-400 italic">${q.verbInf}</span> ]`, `________ <span class="inline-block text-xl font-bold text-slate-500 ml-2">(${q.verbInf})</span>`);
+                document.getElementById('sentence').innerHTML = sentenceHtml;
+
+                // Générer les distracteurs pour QCM
+                let options = [q.correctAnswer];
+                let possibleWrongEndings = allEndings.filter(e => e !== q.ending);
+                
+                // Progressivité QCM : 3 choix (2 faux) pour les 5 premières, 4 choix (3 faux) pour les 5 suivantes
+                let numberOfDistractors = currentQuestionIndex < 5 ? 2 : 3;
+                possibleWrongEndings = shuffleArray(possibleWrongEndings).slice(0, numberOfDistractors); 
+                
+                possibleWrongEndings.forEach(e => options.push(q.stem + e));
+                
+                options = shuffleArray(options);
+
+                // Affichage QCM
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4'; // Modifié en 2 colonnes pour mieux accueillir 4 choix
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'bg-white text-slate-700 text-2xl font-bold py-4 px-6 rounded-2xl border-4 border-slate-200 cartoon-shadow btn-hover hover:border-sky-400 hover:text-sky-500 transition-colors';
+                    btn.innerText = opt;
+                    btn.onclick = () => validateAnswer(opt);
+                    grid.appendChild(btn);
+                });
+                answersArea.appendChild(grid);
+
+            } else {
+                // Type Input
+                sentenceHtml = sentenceHtml.replace(`[ <span class="text-sky-400 italic">${q.verbInf}</span> ]`, `________ <span class="inline-block bg-amber-100 text-amber-600 font-black text-2xl px-4 py-1 rounded-2xl border-4 border-amber-300 shadow-sm mx-2 align-middle">(${q.verbInf})</span>`);
+                document.getElementById('sentence').innerHTML = sentenceHtml;
+
+                const inputContainer = document.createElement('div');
+                inputContainer.className = 'flex flex-col items-center gap-4';
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'user-input';
+                // Correction de la consigne pour ne plus donner la réponse
+                input.placeholder = "Tape le verbe ici..."; 
+                input.className = 'w-full text-center text-3xl font-bold text-slate-700 bg-sky-50 border-4 border-sky-200 rounded-2xl py-3 px-6 focus:outline-none focus:border-sky-500 focus:bg-white transition-colors';
+                input.autocomplete = 'off';
+                
+                // Validation sur la touche Entrée
+                input.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        submitInput();
+                    }
+                });
+
+                const submitBtn = document.createElement('button');
+                submitBtn.className = 'bg-green-400 text-white text-xl font-black py-3 px-10 rounded-full cartoon-shadow btn-hover border-4 border-green-500';
+                submitBtn.innerText = 'Valider';
+                submitBtn.onclick = submitInput;
+
+                inputContainer.appendChild(input);
+                inputContainer.appendChild(submitBtn);
+                answersArea.appendChild(inputContainer);
+                
+                // Focus automatique sur l'input
+                setTimeout(() => input.focus(), 100);
+            }
+        }
+
+        function submitInput() {
+            const inputVal = document.getElementById('user-input').value.trim().toLowerCase();
+            if (inputVal === "") {
+                const inputEl = document.getElementById('user-input');
+                inputEl.classList.add('animate-shake', 'border-red-400', 'bg-red-50');
+                setTimeout(() => inputEl.classList.remove('animate-shake', 'border-red-400', 'bg-red-50'), 500);
+                return;
+            }
+            validateAnswer(inputVal);
+        }
+
+        function validateAnswer(userAnswer) {
+            const q = questions[currentQuestionIndex];
+            const feedbackArea = document.getElementById('feedback-area');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackText = document.getElementById('feedback-text');
+            const answersArea = document.getElementById('answers-area');
+            
+            // Désactiver les boutons/input
+            const inputs = answersArea.querySelectorAll('button, input');
+            inputs.forEach(el => {
+                el.disabled = true;
+                el.classList.remove('btn-hover', 'cartoon-shadow');
+                el.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+
+            feedbackArea.classList.remove('hidden', 'bg-green-100', 'border-green-400', 'text-green-800', 'bg-red-100', 'border-red-400', 'text-red-800');
+            
+            // Vérification
+            if (userAnswer === q.correctAnswer) {
+                // BONNE RÉPONSE
+                score++;
+                feedbackArea.classList.add('bg-green-100', 'border-green-400', 'text-green-800', 'animate-pop');
+                feedbackTitle.innerText = "✨ Bravo ! ✨";
+                feedbackText.innerText = "C'est la bonne réponse !";
+            } else {
+                // MAUVAISE RÉPONSE - Feedback Pédagogique
+                feedbackArea.classList.add('bg-red-100', 'border-red-400', 'text-red-800', 'animate-shake');
+                feedbackTitle.innerText = "Oups ! 😕";
+                
+                // Explication détaillée
+                let pronomExplicite = q.pronoun;
+                if(q.isElision) pronomExplicite = "j'";
+                
+                feedbackText.innerHTML = `Avec le pronom <strong>"${pronomExplicite}"</strong>, la terminaison est <strong>"-${q.ending}"</strong>.<br>
+                Le verbe <em>${q.verbInf}</em> s'écrit donc : <strong class="text-2xl">${q.correctAnswer}</strong>.`;
+            }
+
+            // Scroll léger vers le feedback sur mobile
+            feedbackArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < totalQuestions) {
+                loadQuestion();
+            } else {
+                showEndScreen();
+            }
+        }
+
+        function showEndScreen() {
+            document.getElementById('progress-bar').style.width = '100%';
+            showScreen('end-screen');
+            
+            document.getElementById('final-score').innerText = `${score} / ${totalQuestions}`;
+            
+            const messageEl = document.getElementById('end-message');
+            if (score === totalQuestions) {
+                messageEl.innerText = "Parfait ! Tu maîtrises l'imparfait comme un chef ! 🥇";
+            } else if (score >= 15) {
+                messageEl.innerText = "Super travail ! Tu as très bien compris la leçon. 🥈";
+            } else if (score >= 10) {
+                messageEl.innerText = "C'est un bon début ! Entraîne-toi encore un peu pour devenir un expert. 🥉";
+            } else {
+                messageEl.innerText = "Ne te décourage pas ! Relis bien la petite leçon et réessaie. 💪";
+            }
+        }
+    </script>
+</body>
+</html>
