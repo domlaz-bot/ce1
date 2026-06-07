@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Adverbes - CE1</title>
+    <!-- Tailwind CSS pour le style -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Police Google ludique pour les enfants -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0fdfa; /* Teal très clair */
+            background-image: radial-gradient(#bae6fd 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+        
+        .cartoon-shadow {
+            box-shadow: 4px 6px 0px 0px rgba(0, 0, 0, 0.2);
+            transition: all 0.1s ease-in-out;
+        }
+        
+        .cartoon-shadow:active:not(:disabled) {
+            box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2);
+            transform: translateY(4px);
+        }
+
+        .cartoon-shadow:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: 2px 3px 0px 0px rgba(0, 0, 0, 0.1);
+            transform: translateY(2px);
+        }
+
+        /* Animations */
+        @keyframes bounce-sm {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-sm { animation: bounce-sm 0.5s ease-in-out; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+
+        .word-btn {
+            transition: all 0.2s;
+        }
+        .word-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            background-color: #fef08a; /* yellow-200 */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Header (Score et Niveau) -->
+    <header id="game-header" class="w-full max-w-3xl flex justify-between items-center bg-white p-4 rounded-2xl cartoon-shadow mb-6 hidden border-4 border-sky-400">
+        <div class="flex items-center gap-2 text-sky-600 font-bold text-xl sm:text-2xl">
+            <span id="level-indicator">🚀 Mission 1</span>
+        </div>
+        <div class="flex items-center gap-2 text-amber-500 font-bold text-xl sm:text-2xl">
+            ⭐ <span id="score-display">0</span> / 12
+        </div>
+    </header>
+
+    <!-- Conteneur principal -->
+    <main id="game-container" class="w-full max-w-3xl bg-white p-6 sm:p-10 rounded-3xl cartoon-shadow border-4 border-indigo-400 text-center relative overflow-hidden">
+        
+        <!-- Écran d'accueil -->
+        <div id="screen-welcome" class="space-y-6">
+            <div class="text-6xl mb-4">🦸‍♂️📚🦸‍♀️</div>
+            <h1 class="text-4xl sm:text-5xl font-bold text-indigo-600 mb-2">Mission Adverbes !</h1>
+            <p class="text-xl text-gray-600 mb-6">Deviens le maître des adverbes en réussissant 3 missions secrètes.</p>
+            
+            <!-- Définition CE1 -->
+            <div class="bg-amber-50 border-4 border-amber-300 rounded-2xl p-4 sm:p-6 mb-8 text-left inline-block max-w-xl mx-auto cartoon-shadow">
+                <h3 class="text-xl sm:text-2xl font-bold text-amber-600 mb-2 flex items-center gap-2">
+                    <span>💡</span> C'est quoi un adverbe ?
+                </h3>
+                <p class="text-gray-700 text-lg">
+                    C'est un mot <strong>invariable</strong> (il s'écrit toujours pareil) qui donne des précisions sur l'action. Il explique <strong>comment</strong>, <strong>quand</strong>, <strong>combien</strong> ou <strong>où</strong> les choses se passent.
+                </p>
+                <div class="mt-3 bg-white/60 p-3 rounded-xl border border-amber-200">
+                    <span class="text-indigo-600 font-bold">Exemples :</span> 
+                    <span class="text-gray-800">doucement, hier, ici, beaucoup...</span>
+                </div>
+            </div>
+            <br>
+            <button onclick="startGame()" class="bg-amber-400 hover:bg-amber-500 text-amber-900 font-bold text-2xl py-4 px-8 rounded-2xl cartoon-shadow border-4 border-amber-600">
+                JOUER ! 🎮
+            </button>
+        </div>
+
+        <!-- Écran de jeu dynamique -->
+        <div id="screen-game" class="hidden flex-col items-center w-full min-h-[300px]">
+            <h2 id="question-instruction" class="text-2xl sm:text-3xl font-bold text-indigo-500 mb-6 w-full text-center">Consigne</h2>
+            
+            <!-- Zone de contenu (dynamique selon la phase) -->
+            <div id="interactive-area" class="w-full min-h-[200px] flex flex-col items-center justify-center gap-6">
+                <!-- Le contenu est généré en JS -->
+            </div>
+        </div>
+
+        <!-- Écran de fin -->
+        <div id="screen-end" class="hidden space-y-6">
+            <div class="text-6xl mb-4">🏆🎉</div>
+            <h1 class="text-4xl sm:text-5xl font-bold text-emerald-500 mb-2">Bravo Champion !</h1>
+            <p class="text-2xl text-gray-700">Tu as terminé l'entraînement.</p>
+            <p class="text-3xl font-bold text-amber-500 my-4">Ton score : <span id="final-score"></span>/12 ⭐</p>
+            <button onclick="initData(); startGame();" class="mt-6 bg-sky-400 hover:bg-sky-500 text-sky-900 font-bold text-xl py-3 px-6 rounded-xl cartoon-shadow border-4 border-sky-600">
+                Rejouer une partie 🔄
+            </button>
+        </div>
+
+        <!-- Overlay Feedback -->
+        <div id="feedback-modal" class="absolute inset-0 bg-white/95 flex flex-col items-center justify-center p-6 z-50 hidden opacity-0 transition-opacity duration-300">
+            <div id="feedback-icon" class="text-6xl mb-4"></div>
+            <h3 id="feedback-title" class="text-3xl font-bold mb-4"></h3>
+            <p id="feedback-text" class="text-xl text-gray-700 mb-8 max-w-lg"></p>
+            <button onclick="closeFeedback()" class="bg-indigo-400 hover:bg-indigo-500 text-white font-bold text-xl py-3 px-8 rounded-xl cartoon-shadow border-4 border-indigo-600">
+                Continuer ➡️
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        // --- BASE DE DONNÉES PÉDAGOGIQUE ---
+        // Le pool est plus grand que le nombre de questions pour assurer la rejouabilité
+
+        const DB_MATCHING = [
+            { adj: "lent", adv: "lentement", errorEx: "On ajoute '-ement' à l'adjectif féminin (lente + ment)." },
+            { adj: "doux", adv: "doucement", errorEx: "On ajoute '-ement' à l'adjectif féminin (douce + ment)." },
+            { adj: "rapide", adv: "rapidement", errorEx: "L'adjectif se termine déjà par un 'e', on ajoute juste '-ment'." },
+            { adj: "joyeux", adv: "joyeusement", errorEx: "Au féminin c'est 'joyeuse', donc 'joyeuse-ment'." },
+            { adj: "triste", adv: "tristement", errorEx: "L'adjectif se termine par un 'e', on ajoute juste '-ment'." },
+            { adj: "fort", adv: "fortement", errorEx: "Au féminin c'est 'forte', donc 'forte-ment'." },
+            { adj: "calme", adv: "calmement", errorEx: "L'adjectif se termine par un 'e', on ajoute juste '-ment'." },
+            { adj: "long", adv: "longuement", errorEx: "Au féminin c'est 'longue', donc 'longue-ment'." }
+        ];
+
+        const DB_FILLIN = [
+            { text: "Le chat dort ____.", options: ["profondément", "voiture", "bleu"], answer: "profondément", typeHint: "comment", exp: "'profondément' nous dit COMMENT le chat dort. 'voiture' est un nom, 'bleu' est un adjectif." },
+            { text: "Je cours très ____.", options: ["vite", "pomme", "grand"], answer: "vite", typeHint: "comment", exp: "'vite' nous dit COMMENT tu cours. 'pomme' est un nom, 'grand' est un adjectif." },
+            { text: "Nous irons au parc ____.", options: ["demain", "chaise", "joli"], answer: "demain", typeHint: "quand", exp: "'demain' nous dit QUAND nous irons au parc. C'est un adverbe de temps." },
+            { text: "Il pleut ____ aujourd'hui.", options: ["beaucoup", "stylo", "petit"], answer: "beaucoup", typeHint: "combien", exp: "'beaucoup' nous dit COMBIEN il pleut. C'est un adverbe de quantité." },
+            { text: "Tu dessines ____ bien.", options: ["très", "lapin", "rouge"], answer: "très", typeHint: "intensité", exp: "'très' renforce le mot 'bien', c'est un adverbe." },
+            { text: "Le trésor est caché ____.", options: ["ici", "table", "gentil"], answer: "ici", typeHint: "où", exp: "'ici' nous dit OÙ est caché le trésor. C'est un adverbe de lieu." }
+        ];
+
+        const DB_IDENTIFY = [
+            { sentence: "L' escargot avance doucement .", answer: "doucement", exp: "L'adverbe est 'doucement', il explique COMMENT avance l'escargot." },
+            { sentence: "Je mange bien à la cantine .", answer: "bien", exp: "L'adverbe est 'bien', il explique COMMENT je mange." },
+            { sentence: "Le vent souffle fort .", answer: "fort", exp: "L'adverbe est 'fort', il explique COMMENT le vent souffle." },
+            { sentence: "Elle arrive bientôt .", answer: "bientôt", exp: "L'adverbe est 'bientôt', il indique QUAND elle arrive." },
+            { sentence: "Mon ami habite ici .", answer: "ici", exp: "L'adverbe est 'ici', il indique OÙ habite mon ami." },
+            { sentence: "Le chien aboie souvent .", answer: "souvent", exp: "L'adverbe est 'souvent', il indique QUAND le chien aboie." },
+            { sentence: "Tu es très gentil .", answer: "très", exp: "L'adverbe est 'très', il renforce l'adjectif 'gentil'." }
+        ];
+
+        // --- ETAT DE L'APPLICATION ---
+        let currentPhase = 1;
+        let score = 0;
+        let questionsPhase1 = [];
+        let questionsPhase2 = [];
+        let questionsPhase3 = [];
+        let currentQIndex = 0;
+        
+        // Variables spécifiques aux phases
+        let selectedMatchingAdj = null;
+        let matchingPairsFound = 0;
+
+        // --- UTILITAIRES ---
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function pickRandom(array, count) {
+            return shuffle([...array]).slice(0, count);
+        }
+
+        // --- INITIALISATION ---
+        function initData() {
+            // Sélectionner 4 questions par phase pour avoir 12 questions au total
+            questionsPhase1 = pickRandom(DB_MATCHING, 4);
+            questionsPhase2 = pickRandom(DB_FILLIN, 4);
+            questionsPhase3 = pickRandom(DB_IDENTIFY, 4);
+            score = 0;
+            currentPhase = 1;
+            updateScore(0);
+        }
+
+        function startGame() {
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-end').classList.add('hidden');
+            document.getElementById('game-header').classList.remove('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            document.getElementById('screen-game').classList.add('flex');
+            
+            startPhase(1);
+        }
+
+        function updateScore(pointsToAdd) {
+            score += pointsToAdd;
+            document.getElementById('score-display').innerText = score;
+        }
+
+        function setLevelIndicator(text) {
+            document.getElementById('level-indicator').innerText = text;
+        }
+
+        // --- GESTION DES PHASES ---
+        function startPhase(phaseNum) {
+            currentPhase = phaseNum;
+            currentQIndex = 0;
+            const interactiveArea = document.getElementById('interactive-area');
+            interactiveArea.innerHTML = ''; // Clear
+
+            if (phaseNum === 1) {
+                setLevelIndicator("🧩 Mission 1 : Les Paires");
+                document.getElementById('question-instruction').innerHTML = "Clique sur un adjectif 🔵 puis sur l'adverbe 🟢 qui va avec !";
+                renderPhase1();
+            } else if (phaseNum === 2) {
+                setLevelIndicator("✍️ Mission 2 : Le bon mot");
+                document.getElementById('question-instruction').innerHTML = "Complète la phrase avec le bon adverbe.";
+                renderPhase2();
+            } else if (phaseNum === 3) {
+                setLevelIndicator("🔍 Mission 3 : Le détective");
+                document.getElementById('question-instruction').innerHTML = "Clique sur l'adverbe caché dans la phrase !";
+                renderPhase3();
+            } else {
+                endGame();
+            }
+        }
+
+        // --- RENDU PHASE 1 (RELIER) ---
+        function renderPhase1() {
+            const area = document.getElementById('interactive-area');
+            selectedMatchingAdj = null;
+            matchingPairsFound = 0;
+
+            // Extraire adjectifs et adverbes et les mélanger
+            let adjs = questionsPhase1.map(q => q.adj);
+            let advs = questionsPhase1.map(q => q.adv);
+            shuffle(adjs);
+            shuffle(advs);
+
+            const grid = document.createElement('div');
+            grid.className = "w-full grid grid-cols-2 gap-4 sm:gap-8 max-w-lg";
+
+            const colAdj = document.createElement('div');
+            colAdj.className = "flex flex-col gap-4";
+            
+            const colAdv = document.createElement('div');
+            colAdv.className = "flex flex-col gap-4";
+
+            adjs.forEach(adj => {
+                const btn = document.createElement('button');
+                btn.className = "p-3 sm:p-4 bg-sky-100 border-4 border-sky-400 rounded-xl cartoon-shadow text-lg sm:text-xl font-bold text-sky-800 word-btn adj-btn";
+                btn.dataset.word = adj;
+                btn.innerText = adj;
+                btn.onclick = () => handleAdjClick(btn);
+                colAdj.appendChild(btn);
+            });
+
+            advs.forEach(adv => {
+                const btn = document.createElement('button');
+                btn.className = "p-3 sm:p-4 bg-emerald-100 border-4 border-emerald-400 rounded-xl cartoon-shadow text-lg sm:text-xl font-bold text-emerald-800 word-btn adv-btn";
+                btn.dataset.word = adv;
+                btn.innerText = adv;
+                btn.onclick = () => handleAdvClick(btn);
+                colAdv.appendChild(btn);
+            });
+
+            grid.appendChild(colAdj);
+            grid.appendChild(colAdv);
+            area.appendChild(grid);
+        }
+
+        function handleAdjClick(btn) {
+            // Désélectionner les autres
+            document.querySelectorAll('.adj-btn').forEach(b => {
+                b.classList.remove('bg-sky-400', 'text-white');
+                if(!b.disabled) b.classList.add('bg-sky-100', 'text-sky-800');
+            });
+            // Sélectionner
+            btn.classList.remove('bg-sky-100', 'text-sky-800');
+            btn.classList.add('bg-sky-400', 'text-white');
+            selectedMatchingAdj = btn.dataset.word;
+        }
+
+        function handleAdvClick(advBtn) {
+            if (!selectedMatchingAdj) {
+                // Secouer la colonne adverbe pour dire "choisis un adjectif d'abord"
+                advBtn.classList.remove('animate-shake');
+                void advBtn.offsetWidth; // trigger reflow
+                advBtn.classList.add('animate-shake');
+                return;
+            }
+
+            const advClicked = advBtn.dataset.word;
+            
+            // Chercher la paire correcte dans les données
+            const pairData = questionsPhase1.find(q => q.adj === selectedMatchingAdj);
+            const isCorrect = (pairData.adv === advClicked);
+
+            if (isCorrect) {
+                // Réussite
+                advBtn.classList.replace('bg-emerald-100', 'bg-emerald-400');
+                advBtn.classList.replace('text-emerald-800', 'text-white');
+                advBtn.classList.add('animate-bounce-sm');
+                advBtn.disabled = true;
+                
+                const adjBtn = document.querySelector(`.adj-btn[data-word="${selectedMatchingAdj}"]`);
+                adjBtn.classList.add('animate-bounce-sm');
+                adjBtn.disabled = true;
+                adjBtn.style.opacity = '0.5';
+                advBtn.style.opacity = '0.5';
+
+                updateScore(1);
+                matchingPairsFound++;
+                selectedMatchingAdj = null;
+
+                if (matchingPairsFound === questionsPhase1.length) {
+                    setTimeout(() => startPhase(2), 1000);
+                }
+            } else {
+                // Erreur
+                advBtn.classList.replace('bg-emerald-100', 'bg-rose-200');
+                advBtn.classList.remove('animate-shake');
+                void advBtn.offsetWidth;
+                advBtn.classList.add('animate-shake');
+                
+                setTimeout(() => {
+                    if(!advBtn.disabled) advBtn.classList.replace('bg-rose-200', 'bg-emerald-100');
+                }, 500);
+
+                showFeedback(false, "Oh non ! 😕", `L'adverbe qui correspond à "${selectedMatchingAdj}" est "${pairData.adv}". <br><br>💡 Astuce : ${pairData.errorEx}`);
+                
+                // Désélectionner
+                selectedMatchingAdj = null;
+                document.querySelectorAll('.adj-btn:not(:disabled)').forEach(b => {
+                    b.classList.remove('bg-sky-400', 'text-white');
+                    b.classList.add('bg-sky-100', 'text-sky-800');
+                });
+            }
+        }
+
+        // --- RENDU PHASE 2 (COMPLETER) ---
+        function renderPhase2() {
+            if (currentQIndex >= questionsPhase2.length) {
+                startPhase(3);
+                return;
+            }
+
+            const q = questionsPhase2[currentQIndex];
+            const area = document.getElementById('interactive-area');
+            area.innerHTML = '';
+
+            // Phrase à trous
+            const sentenceDiv = document.createElement('div');
+            sentenceDiv.className = "text-2xl sm:text-4xl font-bold text-gray-700 mb-8 p-6 bg-gray-50 rounded-2xl border-2 border-gray-200 border-dashed w-full";
+            
+            // Remplacer le mot manquant par un trou
+            const formattedSentence = q.text.replace('____', '<span class="inline-block w-24 sm:w-32 border-b-4 border-indigo-400 mx-2 text-indigo-500 animate-pulse">?</span>');
+            sentenceDiv.innerHTML = formattedSentence;
+            
+            area.appendChild(sentenceDiv);
+
+            // Boutons d'options
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = "flex flex-wrap justify-center gap-4 w-full";
+            
+            const shuffledOptions = pickRandom(q.options, q.options.length);
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "py-3 px-6 bg-purple-100 border-4 border-purple-400 rounded-xl cartoon-shadow text-xl font-bold text-purple-800 word-btn flex-grow max-w-[200px]";
+                btn.innerText = opt;
+                btn.onclick = () => handlePhase2Click(opt, btn);
+                optionsDiv.appendChild(btn);
+            });
+
+            area.appendChild(optionsDiv);
+        }
+
+        function handlePhase2Click(selectedOption, btn) {
+            const q = questionsPhase2[currentQIndex];
+            const isCorrect = (selectedOption === q.answer);
+
+            if (isCorrect) {
+                btn.classList.replace('bg-purple-100', 'bg-emerald-400');
+                btn.classList.replace('text-purple-800', 'text-white');
+                btn.classList.add('animate-bounce-sm');
+                updateScore(1);
+                
+                // Remplacer le trou par le mot en vert
+                const sentenceDiv = document.querySelector('#interactive-area > div');
+                sentenceDiv.innerHTML = q.text.replace('____', `<span class="text-emerald-500 font-extrabold underline">${q.answer}</span>`);
+
+                setTimeout(() => {
+                    currentQIndex++;
+                    renderPhase2();
+                }, 1200);
+            } else {
+                btn.classList.replace('bg-purple-100', 'bg-rose-300');
+                btn.classList.add('animate-shake');
+                
+                let explication = `Tu as choisi "${selectedOption}". <br><br>🚨 ${q.exp}`;
+                showFeedback(false, "Presque !", explication);
+            }
+        }
+
+        // --- RENDU PHASE 3 (IDENTIFIER) ---
+        function renderPhase3() {
+            if (currentQIndex >= questionsPhase3.length) {
+                startPhase(4); // Fin
+                return;
+            }
+
+            const q = questionsPhase3[currentQIndex];
+            const area = document.getElementById('interactive-area');
+            area.innerHTML = '';
+
+            const container = document.createElement('div');
+            container.className = "p-6 bg-amber-50 rounded-3xl border-4 border-amber-300 shadow-inner w-full flex flex-wrap justify-center items-center gap-x-2 gap-y-4 text-2xl sm:text-4xl";
+
+            const words = q.sentence.split(' ');
+            
+            words.forEach(word => {
+                if (word === '.' || word === ',' || word === '!' || word === '?') {
+                    const punct = document.createElement('span');
+                    punct.innerText = word;
+                    punct.className = "text-gray-500 font-bold";
+                    container.appendChild(punct);
+                    return;
+                }
+
+                const btn = document.createElement('button');
+                btn.className = "py-2 px-3 sm:px-4 bg-white border-2 border-gray-300 rounded-xl hover:bg-amber-100 hover:border-amber-400 transition-colors focus:outline-none cartoon-shadow text-gray-800 font-semibold";
+                btn.innerText = word;
+                
+                // Gérer les mots avec apostrophe (ex: L'escargot -> L' n'est pas un mot plein pour notre exercice simple, mais on le garde attaché ou séparé selon l'espace)
+                btn.onclick = () => handlePhase3Click(word, btn);
+                container.appendChild(btn);
+            });
+
+            area.appendChild(container);
+        }
+
+        function handlePhase3Click(selectedWord, btn) {
+            const q = questionsPhase3[currentQIndex];
+            // Nettoyage basique (enlever ponctuation collée si besoin, bien que splitée avant)
+            const cleanSelected = selectedWord.replace(/[^a-zA-ZÀ-ÿ]/g, "");
+            const cleanAnswer = q.answer.replace(/[^a-zA-ZÀ-ÿ]/g, "");
+
+            const isCorrect = (cleanSelected.toLowerCase() === cleanAnswer.toLowerCase());
+
+            if (isCorrect) {
+                btn.classList.replace('bg-white', 'bg-emerald-400');
+                btn.classList.replace('border-gray-300', 'border-emerald-600');
+                btn.classList.replace('text-gray-800', 'text-white');
+                btn.classList.add('animate-bounce-sm');
+                updateScore(1);
+
+                setTimeout(() => {
+                    showFeedback(true, "Super Détective ! 🕵️‍♂️", `Bravo ! ${q.exp}`);
+                    // L'avancement se fera quand l'enfant ferme le feedback positif
+                }, 400);
+
+            } else {
+                btn.classList.replace('bg-white', 'bg-rose-300');
+                btn.classList.replace('border-gray-300', 'border-rose-500');
+                btn.classList.add('animate-shake');
+                
+                // Deviner la nature du mot cliqué pour un feedback intelligent (simplifié CE1)
+                let wordNature = "Ce mot";
+                if (['Le', 'La', 'Les', 'Un', 'Une', 'Des', "L'", "Mon", "Ton", "Son"].includes(selectedWord)) wordNature = "Ce mot est un déterminant (petit mot devant le nom)";
+                else if (selectedWord.match(/^[A-Z]/)) wordNature = "Ce mot ressemble à un nom propre ou est en début de phrase";
+                
+                showFeedback(false, "Cherche encore !", `Tu as cliqué sur "${selectedWord}". ${wordNature}. <br><br>💡 Rappel : L'adverbe est un mot invariable qui modifie le sens de la phrase (souvent comment, quand, où).`);
+                
+                setTimeout(() => {
+                    btn.classList.remove('bg-rose-300', 'border-rose-500', 'animate-shake');
+                    btn.classList.add('bg-white', 'border-gray-300');
+                }, 1000);
+            }
+        }
+
+
+        // --- GESTION DU FEEDBACK ---
+        let isCorrectState = false;
+
+        function showFeedback(isCorrect, title, text) {
+            const modal = document.getElementById('feedback-modal');
+            const icon = document.getElementById('feedback-icon');
+            const titleEl = document.getElementById('feedback-title');
+            const textEl = document.getElementById('feedback-text');
+            
+            isCorrectState = isCorrect;
+
+            if (isCorrect) {
+                icon.innerText = "🌟";
+                titleEl.className = "text-3xl font-bold mb-4 text-emerald-500";
+            } else {
+                icon.innerText = "❌";
+                titleEl.className = "text-3xl font-bold mb-4 text-rose-500";
+            }
+
+            titleEl.innerText = title;
+            textEl.innerHTML = text; // innerHTML pour autoriser les <br>
+
+            modal.classList.remove('hidden');
+            // Timeout pour la transition d'opacité
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+            }, 10);
+        }
+
+        function closeFeedback() {
+            const modal = document.getElementById('feedback-modal');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                
+                // Si on était dans la phase 3 et que c'était correct, on passe à la question suivante
+                if (currentPhase === 3 && isCorrectState) {
+                    currentQIndex++;
+                    renderPhase3();
+                }
+                
+                // Pour la phase 2, le feedback n'apparait qu'en cas d'erreur.
+                // Pour la phase 1, le feedback n'apparait qu'en cas d'erreur.
+
+            }, 300); // Attendre la fin de la transition d'opacité
+        }
+
+        // --- FIN DU JEU ---
+        function endGame() {
+            document.getElementById('game-header').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('flex');
+            
+            document.getElementById('screen-end').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+        }
+
+        // --- LANCEMENT INITIAL ---
+        // Préparer les données dès le chargement
+        initData();
+
+    </script>
+</body>
+</html>
