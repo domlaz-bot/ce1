@@ -177,26 +177,29 @@
         let matchingPairsFound = 0;
 
         // --- UTILITAIRES ---
-        function shuffle(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex != 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        function shuffleArray(array) {
+            // Créer une copie pour ne pas modifier le tableau d'origine
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
             }
-            return array;
+            return newArray;
         }
 
-        function pickRandom(array, count) {
-            return shuffle([...array]).slice(0, count);
+        function pickRandomElements(array, count) {
+            // Mélanger le tableau entier, puis prendre les 'count' premiers éléments.
+            // Cela garantit l'unicité des éléments choisis.
+            const shuffled = shuffleArray(array);
+            return shuffled.slice(0, Math.min(count, array.length));
         }
 
         // --- INITIALISATION ---
         function initData() {
-            // Sélectionner 4 questions par phase pour avoir 12 questions au total
-            questionsPhase1 = pickRandom(DB_MATCHING, 4);
-            questionsPhase2 = pickRandom(DB_FILLIN, 4);
-            questionsPhase3 = pickRandom(DB_IDENTIFY, 4);
+            // Sélectionner 4 questions uniques par phase
+            questionsPhase1 = pickRandomElements(DB_MATCHING, 4);
+            questionsPhase2 = pickRandomElements(DB_FILLIN, 4);
+            questionsPhase3 = pickRandomElements(DB_IDENTIFY, 4);
             score = 0;
             currentPhase = 1;
             updateScore(0);
@@ -251,11 +254,9 @@
             selectedMatchingAdj = null;
             matchingPairsFound = 0;
 
-            // Extraire adjectifs et adverbes et les mélanger
-            let adjs = questionsPhase1.map(q => q.adj);
-            let advs = questionsPhase1.map(q => q.adv);
-            shuffle(adjs);
-            shuffle(advs);
+            // Extraire adjectifs et adverbes et les mélanger de façon indépendante
+            let adjs = shuffleArray(questionsPhase1.map(q => q.adj));
+            let advs = shuffleArray(questionsPhase1.map(q => q.adv));
 
             const grid = document.createElement('div');
             grid.className = "w-full grid grid-cols-2 gap-4 sm:gap-8 max-w-lg";
@@ -383,7 +384,8 @@
             const optionsDiv = document.createElement('div');
             optionsDiv.className = "flex flex-wrap justify-center gap-4 w-full";
             
-            const shuffledOptions = pickRandom(q.options, q.options.length);
+            // Mélanger les options pour cette question
+            const shuffledOptions = shuffleArray(q.options);
 
             shuffledOptions.forEach(opt => {
                 const btn = document.createElement('button');
