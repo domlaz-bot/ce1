@@ -56,6 +56,7 @@
             -moz-appearance: textfield;
         }
         
+        /* Personnalisation de la barre de défilement */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -65,48 +66,72 @@
 <body class="min-h-screen flex items-center justify-center p-4">
 
     <!-- ================= PAGE D'ACCUEIL ================= -->
-    <div id="home-screen" class="w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl border-4 border-sky-300 overflow-hidden relative flex flex-col max-h-[90vh]">
-        <div class="p-8 pb-4 text-center shrink-0">
-            <h1 class="text-4xl md:text-5xl font-black text-sky-900 mb-2 animate-pop">Défi Chrono ⏱️</h1>
-            <p class="text-lg text-gray-600 font-bold">1 minute pour valider ta ceinture. Prêt(e) ?</p>
-        </div>
-
-        <div class="px-8 py-2 overflow-y-auto grow">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="belts-list-preview">
-                <!-- Généré dynamiquement -->
+    <div id="home-screen" class="w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl border-4 border-sky-300 flex flex-col h-[95vh] max-h-[850px] overflow-hidden relative">
+        
+        <!-- En-tête Fixe -->
+        <div class="shrink-0 pt-6 px-6 text-center">
+            <h1 class="text-3xl sm:text-4xl font-black text-sky-900 mb-2 animate-pop tracking-tight">Défi Chrono ⏱️</h1>
+            
+            <!-- Onglets de Mode -->
+            <div class="flex justify-center mt-3">
+                <div class="bg-gray-100 p-1.5 rounded-2xl inline-flex w-full max-w-sm relative shadow-inner">
+                    <button id="tab-aventure" onclick="setMode('aventure')" class="flex-1 py-2 font-black text-xs sm:text-sm rounded-xl transition-all z-10 text-sky-900 bg-white shadow">🏆 Aventure</button>
+                    <button id="tab-libre" onclick="setMode('libre')" class="flex-1 py-2 font-black text-xs sm:text-sm rounded-xl transition-all z-10 text-gray-500 hover:text-gray-700">🔓 Mode Libre</button>
+                </div>
             </div>
         </div>
 
-        <div class="p-8 pt-4 shrink-0 bg-white border-t border-gray-100">
-            <div class="flex flex-col gap-3">
-                <div class="flex gap-3">
-                    <button onclick="startPractice()" id="btn-practice" class="flex-1 py-4 bg-sky-100 hover:bg-sky-200 text-sky-800 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-lg border-b-4 border-sky-300 flex items-center justify-center gap-2">
+        <!-- Tableau de bord (Ceinture Sélectionnée) - Fixe -->
+        <div class="shrink-0 p-4 md:px-6 pt-4 pb-2 z-10">
+            <div id="dashboard-card" class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 relative shadow-sm transition-all duration-300">
+                <div class="text-5xl shrink-0 drop-shadow-sm transition-all" id="selected-belt-icon">🤍</div>
+                <div class="flex-1 text-center sm:text-left min-w-0">
+                    <div id="dashboard-mode-badge" class="text-[10px] font-black uppercase tracking-wider text-orange-500 mb-1">Objectif Actuel</div>
+                    <h2 class="text-xl sm:text-2xl font-black text-sky-900 leading-tight mb-1 truncate" id="selected-belt-name">Ceinture Blanche</h2>
+                    <div class="inline-block bg-white px-2 py-1 rounded border border-sky-100 text-xs font-bold text-sky-700 shadow-sm truncate max-w-full" id="selected-belt-desc">Tables de 2 et 10</div>
+                </div>
+                <div class="flex flex-col gap-2 w-full sm:w-auto shrink-0">
+                    <button onclick="startPractice()" class="py-2.5 px-4 bg-sky-400 hover:bg-sky-500 text-white font-black rounded-xl shadow transition-transform hover:scale-105 active:scale-95 text-sm sm:text-base border-b-4 border-sky-600 flex items-center justify-center gap-2">
                         🧠 S'entraîner
                     </button>
-                    <button onclick="openTableSelection()" class="flex-1 py-4 bg-purple-100 hover:bg-purple-200 text-purple-800 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-lg border-b-4 border-purple-300 flex items-center justify-center gap-2">
-                        🎯 Choisir sa table
+                    <button onclick="startTest()" class="py-2.5 px-4 bg-green-400 hover:bg-green-500 text-green-900 font-black rounded-xl shadow transition-transform hover:scale-105 active:scale-95 text-sm sm:text-base border-b-4 border-green-600 flex items-center justify-center gap-2">
+                        ⏱️ Test (1 min)
                     </button>
                 </div>
-                
-                <button onclick="startTest()" id="btn-start" class="w-full py-4 bg-green-400 hover:bg-green-500 text-green-900 font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl sm:text-2xl border-b-4 border-green-600 flex items-center justify-center gap-2 mt-2">
-                    ⏱️ Passer le test (1 min)
-                </button>
-                <button onclick="hardReset()" id="btn-reset" class="hidden w-full py-3 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-colors text-lg">
-                    🔄 Recommencer à zéro
-                </button>
+            </div>
+            
+            <div class="mt-3 flex justify-center">
+                 <button onclick="openTableSelection()" class="text-xs sm:text-sm font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-4 py-1.5 rounded-full transition-colors flex items-center gap-2 shadow-sm">
+                     🎯 S'entraîner sur une table précise
+                 </button>
+            </div>
+        </div>
+
+        <!-- Diviseur -->
+        <div class="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent w-full shrink-0"></div>
+
+        <!-- Liste des ceintures défilante -->
+        <div class="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4 bg-gray-50/50">
+            <h3 class="font-bold text-gray-400 mb-3 px-2 uppercase text-xs tracking-wider">Parcours des ceintures</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4" id="belts-list-preview">
+                <!-- Généré dynamiquement en JS -->
+            </div>
+            
+            <div class="mt-4 mb-4 flex justify-center">
+                <button onclick="hardReset()" id="btn-reset" class="hidden px-4 py-2 bg-red-50 text-red-600 font-bold rounded-xl text-xs hover:bg-red-100 border border-red-200 transition">🔄 Effacer ma progression</button>
             </div>
         </div>
     </div>
 
     <!-- ================= ÉCRAN DE JEU ================= -->
-    <main id="game-screen" class="hidden w-full max-w-lg bg-white rounded-[2rem] shadow-2xl border-4 border-sky-300 overflow-hidden relative flex flex-col">
+    <main id="game-screen" class="hidden w-full max-w-lg bg-white rounded-[2rem] shadow-2xl border-4 border-sky-300 overflow-hidden relative flex flex-col h-[95vh] max-h-[850px]">
         
         <button onclick="goHome()" class="absolute top-4 left-4 z-10 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-xl shadow hover:bg-white hover:scale-110 transition-all">
             🏠
         </button>
 
         <!-- En-tête : Ceinture et Timer -->
-        <header id="header-bg" class="pt-6 pb-4 px-6 text-center text-gray-800 transition-colors duration-500 bg-gray-100">
+        <header id="header-bg" class="pt-6 pb-4 px-6 text-center text-gray-800 transition-colors duration-500 bg-gray-100 shrink-0">
             <h1 class="text-2xl font-black mb-1 flex justify-center items-center gap-2">
                 <span id="belt-icon">🤍</span> 
                 <span id="belt-name">Ceinture Blanche</span>
@@ -126,7 +151,7 @@
         </header>
 
         <!-- Zone de progression -->
-        <div class="px-6 py-4 bg-gray-50 border-y-2 border-gray-100">
+        <div class="px-6 py-4 bg-gray-50 border-y-2 border-gray-100 shrink-0">
             <div class="flex justify-between text-sm font-black text-gray-500 mb-2">
                 <span>Progression</span>
                 <span id="score-text">0 / 8 réussis</span>
@@ -137,7 +162,7 @@
         </div>
 
         <!-- Zone de la question et de la saisie -->
-        <div class="p-8 text-center flex-grow flex flex-col justify-center items-center">
+        <div class="p-4 sm:p-8 text-center flex-grow flex flex-col justify-center items-center overflow-y-auto">
             <div class="text-5xl sm:text-6xl font-black text-sky-900 mb-6 tracking-wider" id="question-text">
                 2 x 3 =
             </div>
@@ -149,7 +174,7 @@
         </div>
 
         <!-- Feedback -->
-        <div id="feedback-zone" class="absolute bottom-0 left-0 w-full p-4 transform translate-y-full transition-transform duration-300">
+        <div id="feedback-zone" class="absolute bottom-0 left-0 w-full p-4 transform translate-y-full transition-transform duration-300 z-20">
             <div id="feedback-msg" class="rounded-2xl p-4 text-center font-bold text-xl shadow-lg"></div>
         </div>
     </main>
@@ -160,8 +185,7 @@
             <button onclick="closeTableSelection()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 rounded-full font-bold transition-colors">✕</button>
             <h2 class="text-2xl font-black text-purple-900 mb-2">Entraînement libre</h2>
             <p class="text-gray-600 font-bold mb-6">Quelle table souhaites-tu réviser ?</p>
-            
-            <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-6" id="specific-tables-grid">
+            <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-2" id="specific-tables-grid">
                 <!-- Généré dynamiquement en JS (tables 2 à 10) -->
             </div>
         </div>
@@ -184,7 +208,7 @@
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-pop border-4 border-yellow-400 relative overflow-hidden">
             <div class="text-6xl mb-4">🎉</div>
             <h2 class="text-3xl font-black text-gray-800 mb-2">Cible atteinte !</h2>
-            <p class="text-lg text-gray-600 font-bold mb-4">Bravo, tu débloques la <br><span id="new-belt-name" class="text-xl">Ceinture Jaune</span> !</p>
+            <p class="text-lg text-gray-600 font-bold mb-4">Bravo, test réussi ! <br><span id="new-belt-name" class="text-xl">Ceinture Jaune</span></p>
             <div class="bg-sky-50 rounded-xl p-3 mb-6 border-2 border-sky-100">
                 <span class="text-sky-800 font-black text-lg">⏱️ Objectif atteint en : <br><span id="level-up-time" class="text-2xl text-sky-600"></span></span>
             </div>
@@ -203,8 +227,8 @@
             <div class="bg-sky-50 rounded-xl p-3 mb-6 border-2 border-sky-100">
                 <span class="text-sky-800 font-black text-lg">⏱️ Ultime défi réussi en : <br><span id="victory-time" class="text-2xl text-sky-600"></span></span>
             </div>
-            <button onclick="hardReset()" class="w-full py-4 bg-sky-500 hover:bg-sky-600 text-white font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
-                Recommencer l'aventure 🔄
+            <button onclick="goHome()" class="w-full py-4 bg-sky-500 hover:bg-sky-600 text-white font-black rounded-2xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-xl">
+                Retour Menu 🏠
             </button>
         </div>
     </div>
@@ -250,17 +274,18 @@
         ];
 
         // === ÉTAT DU JEU ===
-        let currentBeltIndex = 0;
+        let currentMode = 'aventure'; // 'aventure' ou 'libre'
+        let unlockedBeltIndex = 0; // Niveau maximum atteint
+        let selectedBeltIndex = 0; // Ceinture affichée dans le dashboard
+        let playingBeltIndex = 0;  // Ceinture active dans le jeu
+        
         let currentScore = 0;
         let currentQuestion = {};
         let isFirstTry = true;
         let isWaiting = false;
         let isPracticeMode = false;
         let isTimerHidden = false;
-        
-        // NOUVEAU : On garde en mémoire TOUS les calculs posés dans la session courante.
         let askedQuestionsHistory = new Set(); 
-        
         let selectedSpecificTable = null;
 
         let timeLeft = 60;
@@ -271,8 +296,6 @@
         // === ÉLÉMENTS DU DOM ===
         const homeScreen = document.getElementById('home-screen');
         const gameScreen = document.getElementById('game-screen');
-        const btnStart = document.getElementById('btn-start');
-        const btnReset = document.getElementById('btn-reset');
         const beltsListPreview = document.getElementById('belts-list-preview');
 
         const headerBg = document.getElementById('header-bg');
@@ -301,60 +324,121 @@
 
         // === INITIALISATION ===
         function initApp() {
-            generateHomeBelts();
-            generateSpecificTablesGrid();
             loadProgress();
+            generateSpecificTablesGrid();
+            setMode('aventure'); // Définit le mode et lance updateHomeUI()
         }
 
         function loadProgress() {
             try {
                 const saved = localStorage.getItem(SAVE_KEY);
                 if (saved) {
-                    currentBeltIndex = parseInt(saved, 10);
-                    if (currentBeltIndex > 0) {
-                        btnStart.innerHTML = `⏱️ Continuer le test <br><span class="text-sm font-normal">(${belts[currentBeltIndex].name})</span>`;
-                        btnReset.classList.remove('hidden');
-                    }
+                    unlockedBeltIndex = parseInt(saved, 10);
+                    if (isNaN(unlockedBeltIndex)) unlockedBeltIndex = 0;
                 }
             } catch (e) { console.warn("Erreur de lecture de sauvegarde."); }
+            selectedBeltIndex = unlockedBeltIndex;
         }
 
         function saveProgress() {
-            try { localStorage.setItem(SAVE_KEY, currentBeltIndex); } 
+            try { localStorage.setItem(SAVE_KEY, unlockedBeltIndex); } 
             catch (e) { console.warn("Erreur de sauvegarde."); }
         }
 
         function hardReset() {
             if(confirm("Veux-tu vraiment effacer toute ta progression ?")) {
-                currentBeltIndex = 0;
+                unlockedBeltIndex = 0;
+                selectedBeltIndex = 0;
                 saveProgress();
-                btnStart.innerHTML = "Jouer 🚀";
-                btnReset.classList.add('hidden');
                 victoryModal.classList.add('hidden');
-                goHome();
+                setMode('aventure');
             }
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            const tabAventure = document.getElementById('tab-aventure');
+            const tabLibre = document.getElementById('tab-libre');
+
+            if (mode === 'aventure') {
+                tabAventure.className = "flex-1 py-2 font-black text-xs sm:text-sm rounded-xl transition-all z-10 text-sky-900 bg-white shadow";
+                tabLibre.className = "flex-1 py-2 font-black text-xs sm:text-sm rounded-xl transition-all z-10 text-gray-500 hover:text-gray-700";
+                // En aventure, on force la vue sur la ceinture en cours
+                selectedBeltIndex = unlockedBeltIndex;
+            } else {
+                tabLibre.className = "flex-1 py-2 font-black text-xs sm:text-sm rounded-xl transition-all z-10 text-sky-900 bg-white shadow";
+                tabAventure.className = "flex-1 py-2 font-black text-xs sm:text-sm rounded-xl transition-all z-10 text-gray-500 hover:text-gray-700";
+            }
+            updateHomeUI();
+        }
+
+        function updateHomeUI() {
+            generateHomeBelts();
+            
+            const belt = belts[selectedBeltIndex];
+            document.getElementById('selected-belt-icon').textContent = belt.icon;
+            document.getElementById('selected-belt-name').textContent = belt.name;
+            document.getElementById('selected-belt-desc').textContent = belt.desc;
+            
+            const badge = document.getElementById('dashboard-mode-badge');
+            if (currentMode === 'aventure') {
+                if (selectedBeltIndex === unlockedBeltIndex) {
+                    badge.textContent = "🏆 Ton prochain défi";
+                    badge.className = "text-[10px] sm:text-xs font-black uppercase tracking-wider text-orange-500 mb-1";
+                } else {
+                    badge.textContent = "✅ Ceinture acquise (Révision)";
+                    badge.className = "text-[10px] sm:text-xs font-black uppercase tracking-wider text-green-500 mb-1";
+                }
+            } else {
+                badge.textContent = "🔓 Mode Libre";
+                badge.className = "text-[10px] sm:text-xs font-black uppercase tracking-wider text-purple-500 mb-1";
+            }
+
+            if (unlockedBeltIndex > 0) document.getElementById('btn-reset').classList.remove('hidden');
+            else document.getElementById('btn-reset').classList.add('hidden');
         }
 
         function generateHomeBelts() {
             beltsListPreview.innerHTML = '';
             belts.forEach((belt, idx) => {
-                const div = document.createElement('div');
-                const isLocked = currentBeltIndex < idx;
-                const opacity = isLocked ? 'opacity-60 grayscale' : '';
+                const isLocked = currentMode === 'aventure' && idx > unlockedBeltIndex;
+                const isSelected = idx === selectedBeltIndex;
                 
-                div.className = `flex items-center gap-3 p-3 rounded-xl border-2 shadow-sm ${belt.badgeColor} ${opacity}`;
-                div.innerHTML = `
-                    <span class="text-2xl">${isLocked ? '🔒' : belt.icon}</span>
-                    <div class="flex-1">
-                        <div class="font-black text-sm uppercase tracking-wide leading-tight">${belt.name}</div>
-                        <div class="text-[10px] sm:text-xs font-bold opacity-90">${belt.desc}</div>
+                const btn = document.createElement('button');
+                
+                let baseClasses = `flex items-center gap-2 sm:gap-3 p-3 rounded-xl border-2 shadow-sm text-left w-full transition-all `;
+                if (isLocked) {
+                    baseClasses += `opacity-60 grayscale cursor-not-allowed bg-gray-50 border-gray-200 `;
+                } else {
+                    baseClasses += `${belt.badgeColor} hover:scale-[1.02] active:scale-[0.98] cursor-pointer `;
+                }
+                if (isSelected) {
+                    baseClasses += `ring-4 ring-sky-400 ring-offset-2 `;
+                }
+
+                btn.className = baseClasses;
+                btn.onclick = () => {
+                    if (!isLocked) {
+                        selectedBeltIndex = idx;
+                        updateHomeUI();
+                        document.getElementById('home-screen').scrollTo({top:0, behavior:'smooth'});
+                    }
+                };
+                
+                const icon = isLocked ? '🔒' : (idx < unlockedBeltIndex && currentMode === 'aventure' ? '✅' : belt.icon);
+                
+                btn.innerHTML = `
+                    <span class="text-2xl sm:text-3xl shrink-0">${icon}</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-black text-xs sm:text-sm uppercase tracking-wide leading-tight truncate">${belt.name}</div>
+                        <div class="text-[10px] sm:text-[11px] font-bold opacity-90 truncate">${belt.desc}</div>
                     </div>
-                    <div class="text-center shrink-0">
-                        <div class="text-lg font-black">${belt.target}</div>
-                        <div class="text-[9px] uppercase font-bold opacity-80">en 1 min</div>
+                    <div class="text-center shrink-0 bg-white/50 rounded-lg px-2 py-1">
+                        <div class="text-xs sm:text-sm font-black leading-none">${belt.target}</div>
+                        <div class="text-[8px] uppercase font-bold opacity-80">en 1 min</div>
                     </div>
                 `;
-                beltsListPreview.appendChild(div);
+                beltsListPreview.appendChild(btn);
             });
         }
 
@@ -372,6 +456,7 @@
         // === NAVIGATION ===
         function startPractice() {
             selectedSpecificTable = null; 
+            playingBeltIndex = selectedBeltIndex;
             isPracticeMode = true;
             homeScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
@@ -381,6 +466,7 @@
 
         function startTest() {
             selectedSpecificTable = null; 
+            playingBeltIndex = selectedBeltIndex;
             isPracticeMode = false;
             homeScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
@@ -415,18 +501,20 @@
             gameScreen.classList.add('hidden');
             homeScreen.classList.remove('hidden');
             practiceModal.classList.add('hidden');
-            generateHomeBelts(); 
-            loadProgress();
+            
+            // Si on est en mode aventure et qu'on vient de réviser une ancienne ceinture, on remet le focus sur le vrai défi
+            if (currentMode === 'aventure' && selectedBeltIndex > unlockedBeltIndex) {
+                selectedBeltIndex = unlockedBeltIndex;
+            }
+            updateHomeUI();
         }
 
-        // === LOGIQUE DE JEU PRINCIPALE ===
         function startLevel() {
             currentScore = 0;
             timeLeft = 60;
             timeElapsed = 0;
             isWaiting = false;
             
-            // On vide l'historique des questions pour cette nouvelle session
             askedQuestionsHistory.clear();
             
             updateBeltUI();
@@ -457,7 +545,7 @@
         function handleTimeout() {
             isWaiting = true;
             timeoutScore.textContent = currentScore;
-            timeoutTarget.textContent = belts[currentBeltIndex].target;
+            timeoutTarget.textContent = belts[playingBeltIndex].target;
             timeoutModal.classList.remove('hidden');
         }
 
@@ -466,17 +554,15 @@
             startLevel();
         }
 
-        // === GÉNÉRATEUR DE QUESTIONS ===
         function generateQuestion() {
             isFirstTry = true;
             isWaiting = false;
-            const belt = belts[currentBeltIndex];
+            const belt = belts[playingBeltIndex];
             
             let qText = "";
             let currentFactId = "";
             let attempts = 0; 
             
-            // Boucle : on cherche une question INÉDITE dans l'historique
             do {
                 if (selectedSpecificTable !== null) {
                     const table = selectedSpecificTable;
@@ -550,9 +636,6 @@
                 
                 attempts++;
                 
-                // SÉCURITÉ : Si on n'arrive pas à trouver une question inédite après 50 essais
-                // Cela veut dire que l'on a épuisé toutes les combinaisons possibles (le "réservoir" est vide).
-                // On efface alors la mémoire pour permettre au jeu de continuer.
                 if (attempts > 50) {
                     askedQuestionsHistory.clear();
                     break;
@@ -560,14 +643,11 @@
                 
             } while (askedQuestionsHistory.has(currentFactId));
 
-            // On ajoute la question choisie à l'historique
             askedQuestionsHistory.add(currentFactId);
-
             questionText.textContent = currentQuestion.text;
             renderInputZone();
         }
 
-        // === GESTION DE LA SAISIE ===
         function renderInputZone() {
             inputZone.innerHTML = '';
             
@@ -651,7 +731,7 @@
         }
 
         function processAnswerResult(isCorrect, inputsToStyle) {
-            const belt = belts[currentBeltIndex];
+            const belt = belts[playingBeltIndex];
 
             if (isCorrect) {
                 isWaiting = true;
@@ -703,25 +783,24 @@
             }
         }
 
-        // === UI ===
         function updateBeltUI() {
             if (selectedSpecificTable !== null) {
                 beltNameEl.textContent = `Table de ${selectedSpecificTable}`;
                 beltIconEl.textContent = "🎯";
                 beltInstructionEl.textContent = "Entraînement libre";
-                headerBg.className = `pt-6 pb-4 px-6 text-center transition-colors duration-500 rounded-t-[1.5rem] bg-purple-200 text-purple-900`;
+                headerBg.className = `pt-6 pb-4 px-6 text-center transition-colors duration-500 bg-purple-200 text-purple-900 shrink-0`;
                 return;
             }
 
-            const belt = belts[currentBeltIndex];
+            const belt = belts[playingBeltIndex];
             beltNameEl.textContent = belt.name;
             beltIconEl.textContent = belt.icon;
             beltInstructionEl.textContent = isPracticeMode ? "Mode Entraînement - " + belt.desc : belt.desc;
-            headerBg.className = `pt-6 pb-4 px-6 text-center transition-colors duration-500 rounded-t-[1.5rem] ${belt.colorClass} ${belt.textColor}`;
+            headerBg.className = `pt-6 pb-4 px-6 text-center transition-colors duration-500 shrink-0 ${belt.colorClass} ${belt.textColor}`;
         }
 
         function updateScoreUI() {
-            const target = isPracticeMode ? 10 : belts[currentBeltIndex].target;
+            const target = isPracticeMode ? 10 : belts[playingBeltIndex].target;
             scoreText.textContent = `${currentScore} / ${target} réussis`;
             const percentage = Math.min(100, (currentScore / target) * 100);
             progressBar.style.width = `${percentage}%`;
@@ -764,7 +843,6 @@
             }
         }
 
-        // === GESTION DES NIVEAUX ===
         function formatTime(totalSeconds) {
             if (totalSeconds < 60) return totalSeconds + " s";
             const m = Math.floor(totalSeconds / 60);
@@ -796,14 +874,17 @@
         function triggerLevelUp() {
             shootConfetti();
             
-            if (currentBeltIndex >= belts.length - 1) {
+            // Logique de Progression : On débloque la suivante UNIQUEMENT si on joue une ceinture qui le permet
+            if (playingBeltIndex >= unlockedBeltIndex) {
+                unlockedBeltIndex = playingBeltIndex + 1;
+                saveProgress();
+            }
+
+            if (playingBeltIndex >= belts.length - 1) {
                 document.getElementById('victory-time').textContent = formatTime(timeElapsed);
                 victoryModal.classList.remove('hidden');
             } else {
-                currentBeltIndex++;
-                saveProgress();
-                
-                const nextBelt = belts[currentBeltIndex];
+                const nextBelt = belts[playingBeltIndex + 1];
                 newBeltNameEl.textContent = nextBelt.name;
                 
                 let titleColor = nextBelt.textColor === 'text-white' ? 'text-sky-800' : nextBelt.textColor;
@@ -816,10 +897,15 @@
 
         function startNextBelt() {
             levelUpModal.classList.add('hidden');
-            startLevel();
+            selectedBeltIndex = playingBeltIndex + 1; // On passe visuellement à la suivante
+            
+            // Si jamais on l'a débloquée en aventure, s'assurer que c'est celle sélectionnée
+            if (currentMode === 'aventure' && selectedBeltIndex > unlockedBeltIndex) {
+                selectedBeltIndex = unlockedBeltIndex;
+            }
+            startTest();
         }
 
-        // === EFFETS VISUELS ===
         function shootConfetti() {
             const colors = ['#fde047', '#3b82f6', '#ef4444', '#22c55e', '#a855f7'];
             for (let i = 0; i < 60; i++) createConfetti(colors);
